@@ -6,10 +6,10 @@ import MessageList from '../components/messages/MessageList'
 import ChatWindow from '../components/messages/ChatWindow'
 
 export default function Messages() {
-  const [selectedChat, setSelectedChat] = useState<string | null>('2') // Default to show the chat with 杰西卡·李
+  const [selectedChat, setSelectedChat] = useState<string | null>('2')
 
   return (
-    <div className="flex h-screen bg-[#1E2028]">
+    <div className="flex h-screen bg-background text-foreground">
       <Sidebar />
       <main className="flex-1 p-4 overflow-hidden flex gap-4">
         <div className="w-80">
@@ -19,7 +19,7 @@ export default function Messages() {
           {selectedChat ? (
             <ChatWindow chatId={selectedChat} />
           ) : (
-            <div className="h-full flex items-center justify-center text-gray-500">
+            <div className="h-full flex items-center justify-center text-muted-foreground">
               选择一个聊天或开始新的对话
             </div>
           )}

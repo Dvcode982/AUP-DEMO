@@ -28,8 +28,8 @@ const Sidebar = () => {
 
   return (
     <aside className="w-64 bg-white dark:bg-gray-800 shadow-sm p-4">
-      <div className="mb-6 p-4 border-b border-gray-700">
-        <h1 className="text-xl font-bold text-gray-200 mb-4">爱邮坪AUP</h1>
+      <div className="mb-6 p-4 border-b border-gray-200 dark:border-gray-700">
+        <h1 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">爱邮坪AUP</h1>
         <div className="flex items-center space-x-3">
           <Image
             src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-54nShoDlD5GQ9jy3XJEdfm49DiSOZP.png"
@@ -39,8 +39,8 @@ const Sidebar = () => {
             className="rounded-full"
           />
           <div>
-            <h2 className="font-medium text-gray-200">BYD</h2>
-            <p className="text-sm text-gray-400">2024级学生</p>
+            <h2 className="font-medium text-gray-800 dark:text-gray-200">BYD</h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400">2024级学生</p>
           </div>
         </div>
       </div>
