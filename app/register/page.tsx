@@ -13,20 +13,35 @@ export default function Register() {
   const router = useRouter()
   const { theme } = useTheme()
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setError('');
 
-    if (password !== confirmPassword) {
-      setError('密码不匹配')
-      return
-    }
-
-    // Here you would typically handle the registration logic
-    console.log('Registration attempt with:', email, password)
-    // For now, we'll just redirect to the login page
-    router.push('/login')
+  if (password !== confirmPassword) {
+    setError('密码不匹配');
+    return;
   }
+
+  try {
+    const response = await fetch('http://localhost:5000/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password, confirmPassword }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      router.push('/login');
+    } else {
+      setError(data.error);
+    }
+  } catch (err) {
+    setError('An error occurred. Please try again.');
+  }
+};
 
   return (
     <div className={`min-h-screen flex items-center justify-center ${theme === 'dark' ? 'bg-gray-900' : 'bg-gradient-to-br from-green-50 to-teal-50'} py-12 px-4 sm:px-6 lg:px-8`}>
