@@ -12,14 +12,30 @@ export default function Login() {
   const router = useRouter()
   const { theme } = useTheme()
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    // Here you would typically handle the login logic
-    console.log('Login attempt with:', email, password)
-    // For now, we'll just redirect to the home page
-    router.push('/')
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setError('');
+
+  try {
+    const response = await fetch('http://localhost:5000/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      router.push('/');
+    } else {
+      setError(data.error);
+    }
+  } catch (err) {
+    setError('An error occurred. Please try again.');
   }
+};
 
   return (
     <div className={`min-h-screen flex items-center justify-center ${theme === 'dark' ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 to-indigo-50'} py-12 px-4 sm:px-6 lg:px-8`}>
