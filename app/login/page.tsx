@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import Link from 'next/link';
 
 export default function Login() {
   return (
@@ -27,7 +28,7 @@ export default function Login() {
       </div>
 
 {/* 登录框 */}
-      <div className="relative w-[520px] bg-black/50 backdrop-blur-md p-12 rounded-lg overflow-hidden shadow-xl mb-0 z-20">
+      <div className="relative w-[550px] bg-black/0 backdrop-blur-md p-12 rounded-lg overflow-hidden shadow-xl mb-0 z-20">
         {/* 窗口背景图，确保完全覆盖 */}
         <div className="absolute inset-0 w-full h-full z-0 opacity-75">
           <Image 
@@ -44,7 +45,7 @@ export default function Login() {
             <label className="text-white text-2g">用户名:</label>
             <input
               type="text"
-              className="w-full mt-1 px-4 py-2 border border-gray-500 rounded-md bg-gray-900 text-white placeholder-gray-400"
+              className="w-full mt-1 px-4 py-2 text-xs border border-gray-500 rounded-md bg-gray-900 text-white placeholder-gray-400"
               placeholder="请输入用户名"
             />
           </div>
@@ -53,20 +54,28 @@ export default function Login() {
             <label className="text-white text-2g">密码:</label>
             <input
               type="password"
-              className="w-full mt-1 px-4 py-2 border border-gray-500 rounded-md bg-gray-900 text-white placeholder-gray-400"
+              className="w-full mt-1 px-4 py-2 text-xs border border-gray-500 rounded-md bg-gray-900 text-white placeholder-gray-400"
               placeholder="请输入密码"
             />
           </div>
 
           <div className="flex items-center">
             <input type="checkbox" className="mr-2" />
-            <label className="text-white text-sm">记住密码</label>
+            <label className="text-white text-xs">记住密码</label>
           </div>
 
           <button className="w-full bg-blue-500 hover:bg-blue-600 text-white py-1 rounded-md font-bold transition">
             提交
           </button>
+
+          <div className="text-center py-2 text-sm">
+          <Link href="/register" className="font-medium text-indigo-500 hover:text-indigo-500">
+            还没有账户？点击这里注册
+          </Link>
+        </div>
+
         </form>
+        
       </div>
     </div>
   );
