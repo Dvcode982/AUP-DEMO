@@ -69,11 +69,11 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
   }
 
   return (
-    <div className="bg-background text-foreground rounded-lg overflow-hidden flex flex-col h-full border border-border">
+    <div className="bg-gray-200 dark:bg-gray-800 text-foreground rounded-xl overflow-hidden flex flex-col h-full border border-border">
       <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center">
         <div className="flex items-center mx-auto">
           <Avatar className="h-8 w-8 mr-3">
-            <AvatarImage src="/placeholder.svg?height=32&width=32" alt="Chat partner" />
+            <AvatarImage src="/images/lon.jpg" alt="Chat partner" />
             <AvatarFallback>CP</AvatarFallback>
           </Avatar>
           <h2 className="font-medium text-gray-800 dark:text-gray-200">杰西卡·李</h2>
@@ -86,9 +86,10 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
             key={message.id}
             className={`mb-6 flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
           >
+            {/* 我方聊天条 */}
             {message.sender !== 'user' && (
               <Avatar className="h-8 w-8 mr-2">
-                <AvatarImage src="/placeholder.svg?height=32&width=32" alt="User avatar" />
+                <AvatarImage src="/images/lon.jpg" alt="User avatar" />
                 <AvatarFallback>U</AvatarFallback>
               </Avatar>
             )}
@@ -96,17 +97,19 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
               <div className={`max-w-xs lg:max-w-md xl:max-w-lg ${
                 message.sender === 'user'
                   ? 'bg-blue-600 text-white rounded-2xl rounded-tr-sm'
-                  : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-2xl rounded-tl-sm'
+                  : 'bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-2xl rounded-tl-sm'
               } p-3 shadow-md`}>
                 <p className="text-sm">{message.content}</p>
               </div>
-              <span className="text-xs text-gray-500 mt-1">
+              <span className="text-xs text-gray-400 mt-1">
                 {message.timestamp}
               </span>
             </div>
+
+            {/* 对方聊天条 */}
             {message.sender === 'user' && (
               <Avatar className="h-8 w-8 ml-2">
-                <AvatarImage src="/placeholder.svg?height=32&width=32" alt="User avatar" />
+                <AvatarImage src="/images/avt.jpg" alt="User avatar" />
                 <AvatarFallback>U</AvatarFallback>
               </Avatar>
             )}
@@ -155,4 +158,3 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
     </div>
   )
 }
-

@@ -34,16 +34,21 @@ const posts = [
 export default function Home() {
   return (
     <div className="flex h-screen bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800">
+      {/* 左侧功能框 Sidebar 保持不变 */}
       <Sidebar />
+      
       <main className="flex-1 p-4 overflow-hidden">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">看看贴</h1>
           <SearchBar />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4 overflow-y-auto" style={{maxHeight: 'calc(100vh - 140px)'}}>
+          
+          {/* 竖直排列的帖子内容 */}
+          <div className="flex flex-col space-y-4 mt-4 overflow-y-auto" style={{maxHeight: 'calc(100vh - 140px)'}}>
             {posts.map(post => (
               <Post key={post.id} {...post} />
             ))}
           </div>
+
+          {/* 浮动按钮 */}
           <FloatingActionButton />
         </div>
       </main>
