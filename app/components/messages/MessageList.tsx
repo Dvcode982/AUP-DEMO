@@ -47,8 +47,8 @@ interface MessageListProps {
 
 export default function MessageList({ onSelectChat }: MessageListProps) {
   const { theme } = useTheme()
-  const bgColor = theme === 'dark' ? 'bg-black' : 'bg-white'
-  const hoverBgColor = theme === 'dark' ? 'hover:bg-gray-900' : 'hover:bg-gray-100'
+  const bgColor = theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+  const hoverBgColor = theme === 'dark' ? 'hover:bg-gray-900' : 'hover:bg-blue-100'
   const [messages, setMessages] = useState<Message[]>(mockMessages)
   const [searchTerm, setSearchTerm] = useState('')
 
@@ -67,7 +67,7 @@ export default function MessageList({ onSelectChat }: MessageListProps) {
             placeholder="请输入关键字..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 bg-gray-100 dark:bg-gray-800 border-0 text-gray-800 dark:text-gray-200 placeholder-gray-500 focus:ring-0"
+            className="w-full pl-10 bg-blue-100 dark:bg-gray-900 border-0 text-gray-800 dark:text-gray-200 placeholder-gray-500 focus:ring-0"
           />
         </div>
       </div>
@@ -84,7 +84,7 @@ export default function MessageList({ onSelectChat }: MessageListProps) {
               <AvatarImage src={message.user.avatar} alt={message.user.name} />
               <AvatarFallback>{message.user.name[0]}</AvatarFallback>
             </Avatar>
-            <div className="flex-grow min-w-0">
+            <div className="flex-grow min-w-0 ">
               <div className="flex justify-between items-center mb-1">
                 <span className="font-medium text-gray-800 dark:text-gray-200 truncate">
                   {message.user.name}

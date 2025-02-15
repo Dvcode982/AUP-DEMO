@@ -84,7 +84,7 @@ export default function AiPlanner() {
             </form>
           </div>
         </div>
-        <div className={`w-80 bg-white shadow-sm transition-all duration-300 ease-in-out ${showPlan ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className={`w-80  shadow-sm transition-all duration-300 ease-in-out ${showPlan ? 'translate-x-0' : 'translate-x-full'}`}>
           <button
             onClick={() => setShowPlan(!showPlan)}
             className="absolute top-1/2 -left-6 bg-blue-500 text-white p-2 rounded-l-lg shadow-sm hover:bg-blue-600 transition-colors duration-200"
