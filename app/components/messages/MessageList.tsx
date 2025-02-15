@@ -47,8 +47,8 @@ interface MessageListProps {
 
 export default function MessageList({ onSelectChat }: MessageListProps) {
   const { theme } = useTheme()
-  const bgColor = theme === 'dark' ? 'bg-gray-700' : 'bg-white'
-  const hoverBgColor = theme === 'dark' ? 'hover:bg-gray-900' : 'hover:bg-gray-100'
+  const bgColor = theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+  const hoverBgColor = theme === 'dark' ? 'hover:bg-gray-600' : 'hover:bg-blue-100'
   const [messages, setMessages] = useState<Message[]>(mockMessages)
   const [searchTerm, setSearchTerm] = useState('')
 
@@ -58,7 +58,7 @@ export default function MessageList({ onSelectChat }: MessageListProps) {
   )
 
   return (
-    <div className={`${bgColor} rounded-lg overflow-hidden h-full border border-gray-200 dark:border-gray-700`}>
+    <div className={`${bgColor} rounded-lg overflow-hidden h-full border border-gray-200 dark:border-gray-600`}>
       <div className="p-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
@@ -67,7 +67,7 @@ export default function MessageList({ onSelectChat }: MessageListProps) {
             placeholder="请输入关键字..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 bg-blue-100 dark:bg-gray-800 border-0 text-gray-800 dark:text-gray-200 placeholder-gray-500 focus:ring-0"
+            className="w-full pl-10 bg-blue-100 dark:bg-gray-900 border-0 text-gray-800 dark:text-gray-200 placeholder-gray-500 focus:ring-0"
           />
         </div>
       </div>

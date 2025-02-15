@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
+import ChatWindow from '../components/messages/ChatWindow'
 
 // 假设我们有一个 API 请求来获取数据
 async function fetchPostData(id: string) {
@@ -88,6 +89,16 @@ export default function PostPage() {
           提交评论
         </button>
       </form>
+
+      <div className="flex-1">
+                {selectedChat ? (
+                  <ChatWindow chatId={selectedChat} />
+                ) : (
+                  <div className="h-full flex items-center justify-center text-muted-foreground">
+                    选择一个聊天或开始新的对话
+                  </div>
+                )}
+              </div>
     </div>
   )
 }
