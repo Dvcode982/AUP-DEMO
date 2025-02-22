@@ -1,7 +1,10 @@
+'use client'
 import Sidebar from './components/Sidebar'
 import Post from './components/Post'
 import SearchBar from './components/SearchBar'
 import FloatingActionButton from './components/FloatingActionButton'
+import { useState } from 'react'
+import ChatWindow from './components/messages/ChatWindow'
 
 const posts = [
   {
@@ -32,27 +35,38 @@ const posts = [
 ]
 
 export default function Home() {
+  const [selectedChat] = useState<string | null>('2')
+
   return (
     <div className="flex h-screen bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800">
-      {/* 左侧功能框 Sidebar 保持不变 */}
+      {/* 左侧 Sidebar */}
       <Sidebar />
-      
-      <main className="flex-1 p-4 overflow-hidden">
-        <div className="max-w-6xl mx-auto">
+
+      {/* 主体内容：左右分栏 */}
+      <main className="flex-1 p-4 overflow-hidden flex gap-4">
+        {/* 左侧：帖子列表，占据 50% */}
+        <div className="w-1/2 flex flex-col">
           <SearchBar />
-          
-          {/* 竖直排列的帖子内容 */}
-          <div className="flex flex-col space-y-4 mt-4 overflow-y-auto" style={{maxHeight: 'calc(100vh - 140px)'}}>
+
+          {/* 帖子内容区域，纵向排列 */}
+          <div className="flex flex-col space-y-4 mt-4 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 140px)' }}>
             {posts.map(post => (
               <Post key={post.id} {...post} />
             ))}
           </div>
+        </div>
 
-          {/* 浮动按钮 */}
-          <FloatingActionButton />
+        {/* 右侧：聊天窗口，占据 50% */}
+        <div className="w-1/2 flex flex-col">
+          {selectedChat ? (
+            <ChatWindow chatId={selectedChat} />
+          ) : (
+            <div className="h-full flex items-center justify-center text-muted-foreground">
+              选择一个聊天或开始新的对话
+            </div>
+          )}
         </div>
       </main>
     </div>
   )
 }
-

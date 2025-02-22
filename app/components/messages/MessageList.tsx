@@ -48,7 +48,7 @@ interface MessageListProps {
 export default function MessageList({ onSelectChat }: MessageListProps) {
   const { theme } = useTheme()
   const bgColor = theme === 'dark' ? 'bg-gray-800' : 'bg-white'
-  const hoverBgColor = theme === 'dark' ? 'hover:bg-gray-600' : 'hover:bg-blue-100'
+  const hoverBgColor = theme === 'dark' ? 'hover:bg-gray-900' : 'hover:bg-blue-100'
   const [messages, setMessages] = useState<Message[]>(mockMessages)
   const [searchTerm, setSearchTerm] = useState('')
 
@@ -58,7 +58,7 @@ export default function MessageList({ onSelectChat }: MessageListProps) {
   )
 
   return (
-    <div className={`${bgColor} rounded-lg overflow-hidden h-full border border-gray-200 dark:border-gray-600`}>
+    <div className={`${bgColor} rounded-lg overflow-hidden h-full border border-gray-200 dark:border-gray-700`}>
       <div className="p-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
@@ -84,7 +84,7 @@ export default function MessageList({ onSelectChat }: MessageListProps) {
               <AvatarImage src={message.user.avatar} alt={message.user.name} />
               <AvatarFallback>{message.user.name[0]}</AvatarFallback>
             </Avatar>
-            <div className="flex-grow min-w-0">
+            <div className="flex-grow min-w-0 ">
               <div className="flex justify-between items-center mb-1">
                 <span className="font-medium text-gray-800 dark:text-gray-200 truncate">
                   {message.user.name}
