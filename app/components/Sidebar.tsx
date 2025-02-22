@@ -33,7 +33,6 @@ const Sidebar = () => {
     { href: '/lost-and-found', label: '失物找寻', icon: Search },
     { href: '/', label: '论坛', icon: Home },
     { href: '/2', label: '主题板块', icon: Shapes },
-    { href: '/ai-planner', label: '我的AI规划师', icon: Calendar },
     { href: '/1', label: '设置', icon: User },
     { href: '/feedback', label: '反馈', icon: HelpCircle },
   ];
