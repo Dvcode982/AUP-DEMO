@@ -3,25 +3,37 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { Home, Search, Calendar, User, MessageCircle, HelpCircle, LogIn, LogOut, Sun, Moon, Contact, Shapes } from 'lucide-react'
+import { Home, Search, Calendar, User, Palette, HelpCircle, LogIn, LogOut, Sun, Moon, Contact, Shapes } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import Image from 'next/image'
-
-
 
 const Sidebar = () => {
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
   const [isLoggedIn, setIsLoggedIn] = useState(false); // 这应该由认证系统来控制
   const { theme, setTheme } = useTheme();
-  const handleLogout = () => {
-    setIsLoggedIn(false); // 处理登出逻辑
-  };
 
-  // 只在客户端执行
+  // 控制背景图片切换的状态
+  const [isCustomBackground, setIsCustomBackground] = useState(false);
+
   useEffect(() => {
-    setMounted(true);  // 客户端加载完成后将 mounted 设置为 true
+    setMounted(true); // 客户端加载完成后将 mounted 设置为 true
   }, []);
+
+  // 切换背景图片函数
+  const toggleBackgroundImage = () => {
+    if (!isCustomBackground) {
+      // 设置为指定背景图片，请替换为你实际的图片路径
+      document.body.style.backgroundImage = "url('/images/EVA_BG.jpg')";
+      document.body.style.backgroundSize = "cover";
+      document.body.style.backgroundRepeat = "no-repeat";
+      setIsCustomBackground(true);
+    } else {
+      // 恢复原来的背景
+      document.body.style.backgroundImage = "";
+      setIsCustomBackground(false);
+    }
+  };
 
   // 如果还未加载客户端，返回 null 以避免 Hydration 错误
   if (!mounted) {
@@ -36,6 +48,10 @@ const Sidebar = () => {
     { href: '/1', label: '设置', icon: User },
     { href: '/feedback', label: '反馈', icon: HelpCircle },
   ];
+
+  const handleLogout = () => {
+    setIsLoggedIn(false); // 处理登出逻辑
+  };
 
   return (
     <aside className="w-54 bg-white dark:bg-gray-800 shadow-sm p-2">
@@ -86,7 +102,7 @@ const Sidebar = () => {
             ) : (
               <Link
                 href="/login"
-                className={`flex items-center p-2 rounded-lg transition-colors duration-200 ${
+                className={`flex items-center p-1 rounded-lg transition-colors duration-200 ${
                   pathname === '/login'
                     ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
                     : 'text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-800 hover:text-blue-600 dark:hover:text-blue-300'
@@ -100,10 +116,17 @@ const Sidebar = () => {
           <li>
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="flex items-center w-full p-2 text-left rounded-lg text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-800 hover:text-blue-600 dark:hover:text-blue-300 transition-colors duration-200"
+              className="flex items-center w-full p-1 text-left rounded-lg text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-800 hover:text-blue-600 dark:hover:text-blue-300 transition-colors duration-200"
             >
               {theme === 'dark' ? <Sun className="w-4 h-5 mr-2" /> : <Moon className="w-4 h-5 mr-2" />}
               <span>{theme === 'dark' ? '日间模式' : '夜间模式'}</span>
+            </button>
+            <button
+              onClick={toggleBackgroundImage}
+              className="flex items-center w-full p-1 text-left rounded-lg text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-800 hover:text-blue-600 dark:hover:text-blue-300 transition-colors duration-200"
+            >
+              <Palette className="w-4 h-5 mr-2" />
+              <span>界面主题切换</span>
             </button>
           </li>
         </ul>
@@ -113,4 +136,3 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
-

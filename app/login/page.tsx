@@ -12,11 +12,11 @@ export default function Login() {
           <Image 
             src="/images/bg_top.svg" 
             alt="top background" 
-            layout="fill"         // 保持原始fill布局
-            objectFit="cover"    // 保持原始覆盖方式
+            layout="fill"      
+            objectFit="cover"  
             priority
             loading="eager"
-            quality={100}        // 防止压缩导致的尺寸微调
+            quality={100} 
           />
         </div>
 
@@ -47,7 +47,7 @@ export default function Login() {
         </div>
       </div>
 
-      {/* 标题 - 完全未改动 */}
+      
       <div className="absolute top-10 text-white text-3xl font-bold z-20 opacity-70">
         爱邮坪 AUP
       </div>

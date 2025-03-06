@@ -70,9 +70,9 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
   }
 
   return (
-    <div className="relative flex flex-col h-full border border-border rounded-2xl overflow-hidden bg-white dark:bg-gray-800">
+    <div className="relative flex flex-col h-full border border-border rounded-2xl overflow-hidden bg-white dark:bg-gray-800 bg-opacity-50 dark:bg-opacity-50">
       
-      <div className="p-2 border-b border-white dark:border-gray-900 flex items-center z-20">
+      <div className="p-2 border-b border-white dark:border-gray-900 flex items-center z-20 bg-opacity-50 dark:bg-opacity-50">
       {/* 终端窗口顶部按钮 */}
       <div className="absolute top-0 left-0 right-0 h-8 bg-white dark:bg-gray-800 flex items-center px-4 z-20 mt-2 ">
         <div className="w-4 h-4 bg-red-500 rounded-full mr-2"></div>
