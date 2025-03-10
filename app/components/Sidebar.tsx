@@ -23,14 +23,17 @@ const Sidebar = () => {
   // 切换背景图片函数
   const toggleBackgroundImage = () => {
     if (!isCustomBackground) {
-      // 设置为指定背景图片，请替换为你实际的图片路径
-      document.body.style.backgroundImage = "url('/images/EVA_BG.jpg')";
+      // 使用 linear-gradient 创建遮罩效果
+      document.body.style.backgroundImage = "linear-gradient(rgba(40, 40, 40, 0.39), rgba(40, 40, 40, 0.19)), url('/images/EVA_BG.jpg')";
       document.body.style.backgroundSize = "cover";
       document.body.style.backgroundRepeat = "no-repeat";
+      document.body.style.backgroundBlendMode = "normal";
       setIsCustomBackground(true);
+      
     } else {
       // 恢复原来的背景
       document.body.style.backgroundImage = "";
+      document.body.style.backgroundBlendMode = "";
       setIsCustomBackground(false);
     }
   };
@@ -44,7 +47,7 @@ const Sidebar = () => {
     { href: '/messages', label: '坪友列表', icon: Contact },
     { href: '/lost-and-found', label: '失物找寻', icon: Search },
     { href: '/', label: '论坛', icon: Home },
-    { href: '/2', label: '主题板块', icon: Shapes },
+    { href: '/topic-block', label: '主题板块', icon: Shapes },
     { href: '/1', label: '设置', icon: User },
     { href: '/feedback', label: '反馈', icon: HelpCircle },
   ];

@@ -15,7 +15,7 @@ const SearchBar = () => {
   if (!mounted) return null;
 
   return (
-    <div className="flex items-center space-x-2 bg-white dark:bg-gray-800 p-2 rounded-lg border border-gray-200 dark:border-gray-700">
+    <div className="flex items-center space-x-2 bg-white dark:bg-gray-800 p-2 rounded-lg border border-gray-200 dark:border-gray-700 opacity-80">
       {/* 搜索框 */}
       <div className="relative flex-1 ">
         <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />

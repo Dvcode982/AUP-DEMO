@@ -38,18 +38,15 @@ export default function Home() {
   const [selectedChat] = useState<string | null>('2')
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800">
-      {/* 左侧 Sidebar */}
+    <div className="flex h-screen bg-gradient-to-br ">
       <Sidebar />
 
-      {/* 主体内容：左右分栏 */}
-      <main className="flex-1 p-4 overflow-hidden flex gap-4">
+      <main className="flex-1 pt-4 pb-4 pl-4 overflow-hidden flex">
         {/* 左侧：帖子列表，占据 50% */}
-        <div className="w-1/2 flex flex-col">
+        <div className="w-2/3 flex flex-col mr-4">
           <SearchBar />
 
-          {/* 帖子内容区域，纵向排列 */}
-          <div className="flex flex-col space-y-4 mt-4 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 140px)' }}>
+          <div className="flex flex-col space-y-4 mt-6 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 140px)' }}>
             {posts.map(post => (
               <Post key={post.id} {...post} />
             ))}
@@ -57,7 +54,7 @@ export default function Home() {
         </div>
 
         {/* 右侧：聊天窗口，占据 50% */}
-        <div className="w-1/2 flex flex-col">
+        <div className="w-full flex flex-col">
           {selectedChat ? (
             <ChatWindow chatId={selectedChat} />
           ) : (

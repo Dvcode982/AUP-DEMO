@@ -10,8 +10,14 @@ const config: Config = {
   theme: {
   	extend: {
   		colors: {
-  			background: 'hsl(var(--background))',
-  			foreground: 'hsl(var(--foreground))',
+  			background: {
+				DEFAULT: 'hsl(var(--background))', // 默认背景色
+          		dark: 'hsl(var(--background )', // 暗黑模式下的背景色
+			},
+			foreground: {
+				DEFAULT: 'hsl(var(--foreground))',
+				dark: 'hsl(var(--background) )',
+			  },
   			card: {
   				DEFAULT: 'hsl(var(--card))',
   				foreground: 'hsl(var(--card-foreground))'
