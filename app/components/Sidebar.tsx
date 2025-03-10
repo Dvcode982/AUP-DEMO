@@ -6,41 +6,22 @@ import { useState, useEffect } from 'react'
 import { Home, Search, Calendar, User, Palette, HelpCircle, LogIn, LogOut, Sun, Moon, Contact, Shapes } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import Image from 'next/image'
+import { useBackground } from '../contexts/BackgroundContext'
 
 const Sidebar = () => {
-  const [mounted, setMounted] = useState(false);
-  const pathname = usePathname();
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // 这应该由认证系统来控制
-  const { theme, setTheme } = useTheme();
-
-  // 控制背景图片切换的状态
-  const [isCustomBackground, setIsCustomBackground] = useState(false);
+  const [mounted, setMounted] = useState(false)
+  const pathname = usePathname()
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const { theme, setTheme } = useTheme()
+  const { isCustomBackground, toggleBackground } = useBackground()
 
   useEffect(() => {
-    setMounted(true); // 客户端加载完成后将 mounted 设置为 true
-  }, []);
-
-  // 切换背景图片函数
-  const toggleBackgroundImage = () => {
-    if (!isCustomBackground) {
-      // 使用 linear-gradient 创建遮罩效果
-      document.body.style.backgroundImage = "linear-gradient(rgba(40, 40, 40, 0.39), rgba(40, 40, 40, 0.19)), url('/images/EVA_BG.jpg')";
-      document.body.style.backgroundSize = "cover";
-      document.body.style.backgroundRepeat = "no-repeat";
-      document.body.style.backgroundBlendMode = "normal";
-      setIsCustomBackground(true);
-      
-    } else {
-      // 恢复原来的背景
-      document.body.style.backgroundImage = "";
-      document.body.style.backgroundBlendMode = "";
-      setIsCustomBackground(false);
-    }
-  };
+    setMounted(true)
+  }, [])
 
   // 如果还未加载客户端，返回 null 以避免 Hydration 错误
   if (!mounted) {
-    return null;
+    return null
   }
 
   const menuItems = [
@@ -125,7 +106,7 @@ const Sidebar = () => {
               <span>{theme === 'dark' ? '日间模式' : '夜间模式'}</span>
             </button>
             <button
-              onClick={toggleBackgroundImage}
+              onClick={toggleBackground}
               className="flex items-center w-full p-1 text-left rounded-lg text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-800 hover:text-blue-600 dark:hover:text-blue-300 transition-colors duration-200"
             >
               <Palette className="w-4 h-5 mr-2" />

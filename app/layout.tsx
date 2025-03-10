@@ -1,6 +1,7 @@
 import './globals.css'
 import { Inter } from 'next/font/google'
 import { ThemeProvider } from 'next-themes'
+import { BackgroundProvider } from './contexts/BackgroundContext'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -18,10 +19,11 @@ export default function RootLayout({
     <html lang="zh" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          {children}
+          <BackgroundProvider>
+            {children}
+          </BackgroundProvider>
         </ThemeProvider>
       </body>
     </html>
   )
 }
-

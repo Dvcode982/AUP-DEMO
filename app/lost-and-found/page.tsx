@@ -39,7 +39,7 @@ const lostAndFoundPosts = [
 
 export default function LostAndFound() {
   return (
-    <div className="flex h-screen bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-gray-900 dark:to-gray-800">
+    <div className="flex h-screen ">
       <Sidebar />
       <main className="flex-1 p-4 overflow-hidden">
         <div className="max-w-6xl mx-auto">

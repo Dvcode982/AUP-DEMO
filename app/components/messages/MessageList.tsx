@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Search, Plus } from 'lucide-react'
@@ -46,22 +46,38 @@ interface MessageListProps {
 }
 
 export default function MessageList({ onSelectChat }: MessageListProps) {
+  const [mounted, setMounted] = useState(false)
   const { theme } = useTheme()
-  const bgColor = theme === 'dark' ? 'bg-gray-800' : 'bg-white'
-  const hoverBgColor = theme === 'dark' ? 'hover:bg-gray-900' : 'hover:bg-blue-100'
   const [messages, setMessages] = useState<Message[]>(mockMessages)
   const [searchTerm, setSearchTerm] = useState('')
+
+  // 添加mounted状态管理
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // 计算主题相关的样式
+  const bgColor = mounted && theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+  const hoverBgColor = mounted && theme === 'dark' ? 'hover:bg-gray-900' : 'hover:bg-blue-100'
 
   const filteredMessages = messages.filter(message =>
     message.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     message.lastMessage.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
+  // 防止水合不匹配
+  if (!mounted) {
+    return null // 或者返回一个加载占位符
+  }
+
+
+  
+
   return (
-    <div className={`${bgColor} rounded-lg overflow-hidden h-full border border-gray-200 dark:border-gray-700`}>
+    <div className={`${bgColor} rounded-lg overflow-hidden h-full border border-gray-200 dark:border-gray-700 bg-opacity-70`}>
       <div className="p-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+        <div className="relative opacity-80">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4 " />
           <Input
             type="text"
             placeholder="请输入关键字..."

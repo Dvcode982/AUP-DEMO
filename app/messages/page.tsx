@@ -9,7 +9,7 @@ export default function Messages() {
   const [selectedChat, setSelectedChat] = useState<string | null>('2')
 
   return (
-    <div className="flex h-screen bg-gray-100 dark:bg-gray-900 text-foreground">
+    <div className="flex h-screen text-foreground">
       <Sidebar />
       <main className="flex-1 p-4 overflow-hidden flex gap-4">
         <div className="w-80">

@@ -13,7 +13,7 @@ const TOPIC_COLORS = {
 
 export default function TopicBlock() {
   return (
-    <div className="flex h-screen bg-[#0F0F0F] text-white">
+    <div className="flex h-screen text-white">
       <Sidebar />
       
       <main className="flex-1 p-8 overflow-y-auto">
