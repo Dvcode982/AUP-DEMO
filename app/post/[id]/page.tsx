@@ -10,6 +10,7 @@ async function fetchPostData(id: string) {
   // 这里模拟 API 请求，实际开发中你需要替换为实际的 API 调用
   const response = await fetch(`/api/posts/${id}`);
   const data = await response.json();
+  
   return data;
 }
 

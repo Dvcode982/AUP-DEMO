@@ -72,7 +72,7 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
   return (
     <div className="relative flex flex-col h-full border border-border rounded-2xl overflow-hidden bg-white dark:bg-gray-800 bg-opacity-70 dark:bg-opacity-70 ">
       
-      <div className="p-2 flex items-center z-20 bg-opacity-50 dark:bg-opacity-50">
+      <div className="p-2 flex items-center z-20 bg-opacity-0 dark:bg-opacity-0">
       {/* 终端窗口顶部按钮 */}
       <div className="absolute top-0 left-0 right-0 h-8 bg-white dark:bg-gray-800 flex items-center px-4 z-20 mt-2 bg-opacity-20 dark:bg-opacity-20">
         <div className="w-4 h-4 bg-red-500 rounded-full mr-2"></div>
@@ -132,7 +132,7 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyDown={handleKeyPress}
             placeholder="在这里输入内容..."
-            className="flex-grow bg-blue-50 dark:bg-gray-800 border-gray-600 text-white placeholder-gray-400 focus:ring-0"
+            className="flex-grow bg-blue-50 dark:bg-gray-800 border-gray-600 text-black dark:text-white placeholder-gray-400 focus:ring-0"
           />
           <div className="flex items-center space-x-2">
             <Button variant="ghost" size="icon" className="rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-400 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-blue-800 hover:text-blue-600 dark:hover:text-blue-300">

@@ -44,7 +44,7 @@ export default function LostAndFound() {
       <main className="flex-1 p-4 overflow-hidden">
         <div className="max-w-6xl mx-auto">
           <SearchBar />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4 overflow-y-auto" style={{maxHeight: 'calc(100vh - 140px)'}}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4 overflow-y-auto " style={{maxHeight: 'calc(100vh - 140px)'}}>
             {lostAndFoundPosts.map(post => (
               <Post key={post.id} {...post} />
             ))}

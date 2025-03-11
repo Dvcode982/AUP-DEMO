@@ -58,7 +58,7 @@ export default function MessageList({ onSelectChat }: MessageListProps) {
 
   // 计算主题相关的样式
   const bgColor = mounted && theme === 'dark' ? 'bg-gray-800' : 'bg-white'
-  const hoverBgColor = mounted && theme === 'dark' ? 'hover:bg-gray-900' : 'hover:bg-blue-100'
+  const hoverBgColor = mounted && theme === 'dark' ? 'hover:bg-indigo-700' : 'hover:bg-indigo-300'
 
   const filteredMessages = messages.filter(message =>
     message.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -83,37 +83,35 @@ export default function MessageList({ onSelectChat }: MessageListProps) {
             placeholder="请输入关键字..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 bg-blue-100 dark:bg-gray-900 border-0 text-gray-800 dark:text-gray-200 placeholder-gray-500 focus:ring-0"
+            className="w-full pl-10 bg-blue-200/80 dark:bg-gray-900 border-0 text-black dark:text-gray-200 placeholder-gray-500 focus:ring-0"
           />
         </div>
       </div>
       <div className="overflow-y-auto" style={{ height: 'calc(100vh - 240px)' }}>
         {filteredMessages.map((message) => (
-          <div
+            <div
             key={message.id}
-            className={`flex items-center p-4 cursor-pointer ${hoverBgColor} ${
-              message.unread ? bgColor : ''
-            }`}
+            className={`flex items-center p-4 cursor-pointer ${hoverBgColor} ${message.unread ? (theme === 'dark' ? 'bg-indigo-700/60' : 'bg-indigo-200/90') : ''}`}
             onClick={() => onSelectChat(message.id)}
-          >
+            >
             <Avatar className="h-10 w-10 mr-3">
               <AvatarImage src={message.user.avatar} alt={message.user.name} />
               <AvatarFallback>{message.user.name[0]}</AvatarFallback>
             </Avatar>
-            <div className="flex-grow min-w-0 ">
+            <div className="flex-grow min-w-0">
               <div className="flex justify-between items-center mb-1">
-                <span className="font-medium text-gray-800 dark:text-gray-200 truncate">
-                  {message.user.name}
-                </span>
-                <span className="text-xs text-gray-500 flex-shrink-0">{message.timestamp}</span>
+              <span className="font-medium text-gray-800 dark:text-gray-200 truncate">
+              {message.user.name}
+              </span>
+              <span className="text-xs text-gray-500 flex-shrink-0">{message.timestamp}</span>
               </div>
               <p className={`text-sm truncate ${
-                message.unread ? 'text-gray-800 dark:text-gray-200' : 'text-gray-600 dark:text-gray-400'
+              message.unread ? 'text-indigo-700 dark:text-indigo-300' : 'text-indigo-600 dark:text-indigo-400'
               }`}>
-                {message.lastMessage}
+              {message.lastMessage}
               </p>
             </div>
-          </div>
+            </div>
         ))}
       </div>
     </div>

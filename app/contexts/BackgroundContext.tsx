@@ -22,8 +22,8 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
     
     if (isCustomBackground) {
       const overlay = theme === 'dark'
-        ? "linear-gradient(rgba(0, 0, 0, 0.39), rgba(0, 0, 0, 0.5))"
-        : "linear-gradient(rgba(255, 255, 255, 0.43), rgba(255, 255, 255, 0.5))"
+        ? "linear-gradient(rgba(35, 35, 35, 0.39), rgba(43, 43, 43, 0.39))"
+        : "linear-gradient(rgba(43, 43, 43, 0.19), rgba(255, 255, 255, 0.19))"
 
       document.body.style.backgroundImage = `${overlay}, url('/images/EVA_BG.jpg')`
       document.body.style.backgroundSize = "cover"
