@@ -5,9 +5,10 @@ interface TopicCardProps {
     glow: string;
   };
   sizeClass: string;
+  fontSize?: string; // 添加可选的字体大小属性
 }
 
-export default function TopicCard({ topic, colors, sizeClass }: TopicCardProps) {
+export default function TopicCard({ topic, colors, sizeClass, fontSize = "text-[30px]" }: TopicCardProps) {
   return (
     <div
       className={`group relative p-6 bg-[#1A1A1A] rounded-2xl border-2 
@@ -22,10 +23,10 @@ export default function TopicCard({ topic, colors, sizeClass }: TopicCardProps) 
       <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity bg-[var(--glow)] blur-xl" />
       
       <div className="relative flex flex-col items-center justify-center h-full">
-        <div className="text-center font-semibold text-[17px] group-hover:scale-105 transition-transform">
+        <div className={`text-center font-semibold ${fontSize} group-hover:scale-105 transition-transform break-words w-full`}>
           {topic}
         </div>
-        <div className="mt-2 text-sm text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className=" text-[12px] text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity text-center">
           点击进入讨论
         </div>
       </div>

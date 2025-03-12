@@ -21,7 +21,7 @@ export default function MyProfile() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
+    <div className="flex h-screen">
       <Sidebar />
       <main className="flex-1 p-8 overflow-y-auto">
         <div className="max-w-2xl mx-auto">
@@ -43,7 +43,7 @@ export default function MyProfile() {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="flex-1"
+                  className="flex-1 dark:text-white"
                 />
               </div>
               <div className="flex items-center space-x-2">
@@ -52,7 +52,7 @@ export default function MyProfile() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="flex-1"
+                  className="flex-1 dark:text-white"
                 />
               </div>
               <div className="flex items-start space-x-2">
@@ -61,7 +61,7 @@ export default function MyProfile() {
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   rows={3}
-                  className="flex-1"
+                  className="flex-1 dark:text-white"
                 />
               </div>
             </div>
