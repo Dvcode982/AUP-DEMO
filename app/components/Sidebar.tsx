@@ -7,13 +7,16 @@ import { Home, Search, Calendar, User, Palette, HelpCircle, LogIn, LogOut, Sun, 
 import { useTheme } from 'next-themes'
 import Image from 'next/image'
 import { useBackground } from '../contexts/BackgroundContext'
+import { useAuth } from '../contexts/AuthContext'
+import { useRouter } from 'next/navigation'
 
 const Sidebar = () => {
   const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const { theme, setTheme } = useTheme()
   const { isCustomBackground, toggleBackground } = useBackground()
+  const { isAuthenticated, logout } = useAuth()
+  const router = useRouter()
 
   useEffect(() => {
     setMounted(true)
@@ -24,6 +27,11 @@ const Sidebar = () => {
     return null
   }
 
+  const handleLogout = () => {
+    logout()
+    router.push('/login')
+  }
+
   const menuItems = [
     { href: '/messages', label: '坪友列表', icon: Contact },
     { href: '/lost-and-found', label: '失物找寻', icon: Search },
@@ -32,10 +40,6 @@ const Sidebar = () => {
     { href: '/1', label: '设置', icon: User },
     { href: '/feedback', label: '反馈', icon: HelpCircle },
   ];
-
-  const handleLogout = () => {
-    setIsLoggedIn(false); // 处理登出逻辑
-  };
 
   return (
     <aside className="w-54 bg-white dark:bg-gray-800 shadow-sm p-2">
@@ -75,27 +79,13 @@ const Sidebar = () => {
             </li>
           ))}
           <li>
-            {isLoggedIn ? (
-              <button
-                onClick={handleLogout}
-                className="flex items-center w-full p-2 text-left rounded-lg text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-800 hover:text-blue-600 dark:hover:text-blue-300 transition-colors duration-200"
-              >
-                <LogOut className="w-5 h-5 mr-3" />
-                <span>登出</span>
-              </button>
-            ) : (
-              <Link
-                href="/login"
-                className={`flex items-center p-1 rounded-lg transition-colors duration-200 ${
-                  pathname === '/login'
-                    ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
-                    : 'text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-800 hover:text-blue-600 dark:hover:text-blue-300'
-                }`}
-              >
-                <LogIn className="w-4 h-5 mr-2" />
-                <span>登录</span>
-              </Link>
-            )}
+            <button
+              onClick={handleLogout}
+              className="flex items-center w-full p-1 text-left rounded-lg text-gray-600 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-800 hover:text-red-600 dark:hover:text-red-300 transition-colors duration-200 mt-4"
+            >
+              <LogOut className="w-4 h-5 mr-2" />
+              <span>退出登录</span>
+            </button>
           </li>
           <li>
             <button

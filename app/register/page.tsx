@@ -4,42 +4,36 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useTheme } from 'next-themes'
+import { authAPI } from '@/lib/api'
 
 export default function Register() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const { theme } = useTheme()
 
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   setError('');
+  setIsLoading(true);
 
   if (password !== confirmPassword) {
     setError('密码不匹配');
+    setIsLoading(false);
     return;
   }
 
   try {
-    const response = await fetch('http://localhost:5000/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password, confirmPassword }),
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      router.push('/login');
-    } else {
-      setError(data.error);
-    }
-  } catch (err) {
-    setError('An error occurred. Please try again.');
+    await authAPI.register(email, password, confirmPassword);
+    // 注册成功，跳转到登录页
+    router.push('/login');
+  } catch (err: any) {
+    setError(err.message || '注册失败，请稍后再试');
+  } finally {
+    setIsLoading(false);
   }
 };
 
@@ -102,9 +96,10 @@ const handleSubmit = async (e: React.FormEvent) => {
           <div>
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
+              disabled={isLoading}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:bg-teal-400 disabled:cursor-not-allowed"
             >
-              注册
+              {isLoading ? '注册中...' : '注册'}
             </button>
           </div>
         </form>

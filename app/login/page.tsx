@@ -1,8 +1,47 @@
 'use client'
 import Image from 'next/image';
 import Link from 'next/link';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '../contexts/AuthContext';
+import { authAPI } from '@/lib/api';
 
 export default function Login() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  const { login } = useAuth();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setIsLoading(true);
+
+    try {
+      const data = await authAPI.login(email, password);
+      
+      // 使用认证上下文登录
+      login(data.token, data.userId);
+      
+      // 如果选择了"记住我"，则设置较长的过期时间
+      if (rememberMe) {
+        const expirationDate = new Date();
+        expirationDate.setDate(expirationDate.getDate() + 30);
+        document.cookie = `rememberedUser=${email}; expires=${expirationDate.toUTCString()}; path=/`;
+      }
+
+      // 导航到首页
+      router.push('/');
+    } catch (err: any) {
+      setError(err.message || '登录失败，请检查邮箱和密码');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="relative min-h-screen flex flex-col justify-end items-center bg-black overflow-hidden">
       {/* 背景层 - 完全保持原始结构 */}
@@ -59,7 +98,7 @@ export default function Login() {
             src="/images/bg_wind.png" 
             alt="window background"
             layout="fill"
-            objectFit="cover"  // 保持原始覆盖方式
+            objectFit="cover"
             priority
             loading="eager"
             quality={100}
@@ -67,13 +106,22 @@ export default function Login() {
         </div>
 
         {/* 登录表单 - 完全原始代码 */}
-        <form className="relative z-10 space-y-3 px-20 py-3 overflow-auto mt-auto">
+        <form onSubmit={handleSubmit} className="relative z-10 space-y-3 px-20 py-3 overflow-auto mt-auto">
+          {error && (
+            <div className="text-red-500 text-sm bg-red-100/10 p-2 rounded">
+              {error}
+            </div>
+          )}
+          
           <div>
             <label className="text-white text-base mt-auto">用户名:</label>
             <input
               type="text"
               className="w-full mt-1 px-4 py-2 text-xs border border-gray-500 rounded-md bg-gray-900 text-white placeholder-gray-400 mt-auto"
-              placeholder="请输入用户名"
+              placeholder="请输入邮箱"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
             />
           </div>
 
@@ -83,16 +131,28 @@ export default function Login() {
               type="password"
               className="w-full mt-1 px-4 py-2 text-xs border border-gray-500 rounded-md bg-gray-900 text-white placeholder-gray-400 mt-auto"
               placeholder="请输入密码"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
             />
           </div>
 
           <div className="flex items-center mt-auto">
-            <input type="checkbox" className="mr-2 mt-auto" />
+            <input 
+              type="checkbox" 
+              className="mr-2 mt-auto"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+            />
             <label className="text-white text-xs mt-auto">记住密码</label>
           </div>
 
-          <button className="w-full bg-blue-500 hover:bg-blue-600 text-white py-1 rounded-md font-bold text-sm transition mt-auto">
-            提交
+          <button 
+            type="submit" 
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white py-1 rounded-md font-bold text-sm transition mt-auto disabled:bg-blue-400 disabled:cursor-not-allowed"
+            disabled={isLoading}
+          >
+            {isLoading ? '登录中...' : '提交'}
           </button>
 
           <div className="mt-auto text-center py-1 text-xs">
