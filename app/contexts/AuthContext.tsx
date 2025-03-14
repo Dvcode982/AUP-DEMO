@@ -5,13 +5,20 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 interface User {
   id: string;
   email: string;
+  username?: string;
+  avatar?: string;
+  role?: string; // 用户角色如"学生"、"教师"等
+  grade?: string; // 年级信息如"2024级"
+  department?: string; // 系别信息
+  bio?: string; // 个人简介
 }
 
 interface AuthContextType {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
-  login: (token: string, userId: string) => void;
+  login: (token: string, userId: string, userData?: Partial<User>) => void;
+  updateUserProfile: (userData: Partial<User>) => void;
   logout: () => void;
   loading: boolean;
 }
@@ -29,10 +36,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const storedToken = localStorage.getItem('token');
         const storedUserId = localStorage.getItem('userId');
+        const storedUserData = localStorage.getItem('userData');
         
         if (storedToken && storedUserId) {
           setToken(storedToken);
-          setUser({ id: storedUserId, email: '' });
+          
+          // 尝试加载更详细的用户信息
+          if (storedUserData) {
+            try {
+              const userData = JSON.parse(storedUserData);
+              setUser({ 
+                id: storedUserId, 
+                email: userData.email || '',
+                username: userData.username,
+                avatar: userData.avatar,
+                role: userData.role,
+                grade: userData.grade,
+                department: userData.department,
+                bio: userData.bio
+              });
+            } catch {
+              // 如果解析失败，回退到基本信息
+              setUser({ id: storedUserId, email: '' });
+            }
+          } else {
+            setUser({ id: storedUserId, email: '' });
+          }
         }
       } catch (error) {
         console.error('Failed to load user from storage', error);
@@ -45,13 +74,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // 登录函数
-  const login = (newToken: string, userId: string) => {
+  const login = (newToken: string, userId: string, userData?: Partial<User>) => {
+    const newUser = { 
+      id: userId, 
+      email: userData?.email || '',
+      username: userData?.username || '用户' + userId.substring(0, 4),
+      avatar: userData?.avatar,
+      role: userData?.role || '学生',
+      grade: userData?.grade || '2024级',
+      department: userData?.department,
+      bio: userData?.bio
+    };
+    
     setToken(newToken);
-    setUser({ id: userId, email: '' });
+    setUser(newUser);
     
     // 保存到本地存储
     localStorage.setItem('token', newToken);
     localStorage.setItem('userId', userId);
+    localStorage.setItem('userData', JSON.stringify(newUser));
+  };
+
+  // 更新用户资料
+  const updateUserProfile = (userData: Partial<User>) => {
+    if (!user) return;
+    
+    const updatedUser = { ...user, ...userData };
+    setUser(updatedUser);
+    localStorage.setItem('userData', JSON.stringify(updatedUser));
   };
 
   // 登出函数
@@ -62,6 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // 清除本地存储
     localStorage.removeItem('token');
     localStorage.removeItem('userId');
+    localStorage.removeItem('userData');
   };
 
   // 是否已认证
@@ -72,6 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     token,
     isAuthenticated,
     login,
+    updateUserProfile,
     logout,
     loading
   };
