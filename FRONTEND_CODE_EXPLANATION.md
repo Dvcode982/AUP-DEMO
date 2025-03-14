@@ -15,7 +15,7 @@ AUP-DEMO/
 │   ├── login/            # 登录相关页面
 │   ├── post/             # 帖子相关页面
 │   ├── lost-and-found/   # 失物招领页面
-│   ├── ai-planner/       # AI 规划页面
+│   ├── topic-block/      # 主题板块页面
 │   └── components/       # 页面级组件
 ├── components/            # 全局共享组件
 ├── lib/                   # 工具函数和配置
@@ -133,12 +133,11 @@ const config: Config = {
 - 状态标记
 - 归还确认
 
-#### app/ai-planner/page.tsx
-AI 规划助手页面，包含：
-- 对话界面
-- 日程展示
-- 历史记录
-- 日历组件
+#### app/topic-block/page.tsx
+主题板块页面，实现：
+- 主题板块列表
+- 板块选择
+- 板块内容展示
 
 ### 3. 共享组件
 

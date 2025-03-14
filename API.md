@@ -154,62 +154,56 @@
 ```json
 [
   {
-    "id": "number",
-    "author": "string",
-    "avatar": "string",
+    "id": "string",
     "content": "string",
-    "time": "string",
-    "tags": ["string"],
-    "isLostAndFound": true,
+    "authorId": "string",
+    "authorName": "string",
+    "createdAt": "string",
     "isReturned": "boolean",
-    "returnedTime": "string"
+    "returnedTime": "string | null"
   }
 ]
 ```
 
-### 标记物品已找到/已归还
-
-**请求**
-- 方法: `PUT`
-- 路径: `/api/lost-and-found/{id}/return`
-
-**响应**
-- 成功 (200)
-```json
-{
-  "message": "Item marked as returned",
-  "returnedTime": "string"
-}
-```
-
-## AI 规划师 API
-
-### 发送规划请求
+### 发布失物招领
 
 **请求**
 - 方法: `POST`
-- 路径: `/api/ai-planner`
+- 路径: `/api/lost-and-found`
 - Content-Type: `application/json`
 
 **请求参数**
 ```json
 {
-  "message": "string",     // 用户输入的消息
-  "date": "string"        // 可选，规划的日期
+  "content": "string"
 }
 ```
+
+**响应**
+- 成功 (201)
+```json
+{
+  "id": "string",
+  "content": "string",
+  "authorId": "string",
+  "createdAt": "string",
+  "isReturned": "boolean"
+}
+```
+
+### 标记为已归还
+
+**请求**
+- 方法: `PATCH`
+- 路径: `/api/lost-and-found/:id/return`
 
 **响应**
 - 成功 (200)
 ```json
 {
-  "response": "string",    // AI 回复的消息
-  "suggestions": [         // 可选，AI 的建议列表
-    {
-      "time": "string",
-      "activity": "string"
-    }
-  ]
+  "id": "string",
+  "isReturned": true,
+  "returnedTime": "string"
 }
 ```
 
