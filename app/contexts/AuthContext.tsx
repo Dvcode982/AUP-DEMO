@@ -17,7 +17,7 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
-  login: (token: string, userId: string, userData?: Partial<User>) => void;
+  login: (token: string, userId: string | number, userData?: Partial<User>) => void;
   updateUserProfile: (userData: Partial<User>) => void;
   logout: () => void;
   loading: boolean;
@@ -74,11 +74,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // 登录函数
-  const login = (newToken: string, userId: string, userData?: Partial<User>) => {
+  const login = (newToken: string, userId: string | number, userData?: Partial<User>) => {
     const newUser = { 
-      id: userId, 
+      id: String(userId), 
       email: userData?.email || '',
-      username: userData?.username || '用户' + userId.substring(0, 4),
+      username: userData?.username || '用户' + String(userId).slice(0, 4),
       avatar: userData?.avatar,
       role: userData?.role || '学生',
       grade: userData?.grade || '2024级',
@@ -91,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     // 保存到本地存储
     localStorage.setItem('token', newToken);
-    localStorage.setItem('userId', userId);
+    localStorage.setItem('userId', String(userId));
     localStorage.setItem('userData', JSON.stringify(newUser));
   };
 

@@ -2,11 +2,11 @@ const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const bodyParser = require('body-parser');
 const cors = require('cors');
-
+const bcrypt = require('bcrypt');
 const app = express();
 const port = 5000;
 
-// 使用中间件
+/*使用中间件
 app.use(bodyParser.json());
 app.use(cors());
 
@@ -39,24 +39,46 @@ app.post('/register', (req, res) => {
     res.status(201).json({ message: 'User registered successfully', userId: this.lastID });
   });
 });
-
+*/
 // 用户登录
-app.post('/login', (req, res) => {
+app.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password are required' });
   }
 
-  const query = `SELECT * FROM users WHERE email = ? AND password = ?`;
-  db.get(query, [email, password], (err, row) => {
+  const query = `SELECT * FROM users WHERE email = ?`;
+  db.get(query, [email], async (err, user) => {
     if (err) {
       return res.status(500).json({ error: 'Database error' });
     }
-    if (!row) {
+    if (!user) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
-    res.status(200).json({ message: 'Login successful', userId: row.id });
+    try {
+      const validPassword = await bcrypt.compare(password, user.password);
+      if (!validPassword) {
+        return res.status(401).json({ error: 'Invalid email or password' });
+      }
+
+      // 生成JWT token
+      const jwt = require('jsonwebtoken');
+      const token = jwt.sign(
+        { userId: user.id, email: user.email },
+        process.env.JWT_SECRET || 'your-secret-key',
+        { expiresIn: '24h' }
+      );
+
+      res.status(200).json({ 
+        message: 'Login successful', 
+        userId: user.id,
+        token,
+        email: user.email
+      });
+    } catch (error) {
+      res.status(500).json({ error: 'Server error' });
+    }
   });
 });
 
