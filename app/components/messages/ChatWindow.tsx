@@ -70,30 +70,32 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
   }
 
   return (
-    <div className="relative flex flex-col h-full border border-border rounded-2xl overflow-hidden bg-white dark:bg-gray-800 bg-opacity-70 dark:bg-opacity-70 ">
+    <div className="relative flex flex-col h-full border border-border rounded-2xl overflow-hidden bg-white dark:bg-gray-800 bg-opacity-70 dark:bg-opacity-70">
       
-      <div className="p-2 flex items-center z-20 bg-opacity-0 dark:bg-opacity-0">
-      {/* 终端窗口顶部按钮 */}
-      <div className="absolute top-0 left-0 right-0 h-8 bg-white dark:bg-gray-800 flex items-center px-4 z-20 mt-2 bg-opacity-20 dark:bg-opacity-20">
-        <div className="w-4 h-4 bg-red-500 rounded-full mr-2"></div>
-        <div className="w-4 h-4 bg-yellow-500 rounded-full mr-2"></div>
-        <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+      {/* 顶部区域 */}
+      <div className="fixed-header backdrop-blur-md absolute top-0 left-0 right-0 h-[48px] z-30">
+        <div className="p-2 flex items-center bg-white/70 dark:bg-gray-800/70 h-full">
+          {/* 终端窗口顶部按钮 */}
+          <div className="absolute top-0 left-0 right-0 h-8 flex items-center px-4 mt-2">
+            <div className="w-4 h-4 bg-red-500 rounded-full mr-2"></div>
+            <div className="w-4 h-4 bg-yellow-500 rounded-full mr-2"></div>
+            <div className="w-4 h-4 bg-green-500 rounded-full"></div>
 
-        
-        <div className="flex items-center mx-auto px-2">
-          <Avatar className="h-7 w-7 mr-3">
-            <AvatarImage src="/images/lon.jpg" alt="Chat partner" />
-            <AvatarFallback>CP</AvatarFallback>
-          </Avatar>
-          <h2 className="font-medium text-gray-800 dark:text-gray-200">杰西卡·李</h2>
+            <div className="flex items-center mx-auto px-2">
+              <Avatar className="h-7 w-7 mr-3">
+                <AvatarImage src="/images/lon.jpg" alt="Chat partner" />
+                <AvatarFallback>CP</AvatarFallback>
+              </Avatar>
+              <h2 className="font-medium text-gray-800 dark:text-gray-200">杰西卡·李</h2>
+            </div>
+          </div>
         </div>
+        {/* 渐变横线 */}
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500"></div>
       </div>
-      </div>
-      {/* 渐变横线 */}
-      <div className="absolute top-4 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 z-20 mt-6 overflow-hidden"></div>
 
-      {/* 聊天内容 */}
-      <div className="relative z-10 flex-grow overflow-y-auto p-4 pt-12 text-white">
+      {/* 聊天内容区域 */}
+      <div className="relative z-10 flex-grow overflow-y-auto p-4 pt-[52px] text-white">
 
         {messages.map((message) => (
           <div key={message.id} className={`mt-6 flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>

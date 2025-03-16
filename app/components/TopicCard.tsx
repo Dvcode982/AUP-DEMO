@@ -5,11 +5,13 @@ interface TopicCardProps {
     glow: string;
   };
   sizeClass: string;
+  onClick: () => void;
 }
 
-export default function TopicCard({ topic, colors, sizeClass }: TopicCardProps) {
+export default function TopicCard({ topic, colors, sizeClass, onClick }: TopicCardProps) {
   return (
     <div
+      onClick={onClick}
       className={`group relative p-6 bg-[#1A1A1A] rounded-2xl border-2 
                 transition-all cursor-pointer shadow-[0_4px_24px_rgba(0,0,0,0.25)]
                 hover:shadow-[0_8px_32px_var(--glow)] ${sizeClass}
