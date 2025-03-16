@@ -5,38 +5,34 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import { authAPI } from '@/lib/api';
+import toast, { Toaster } from 'react-hot-toast';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
-  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     setIsLoading(true);
 
     try {
       const data = await authAPI.login(email, password);
-      
-      // 使用认证上下文登录
       login(data.token, data.userId);
       
-      // 如果选择了"记住我"，则设置较长的过期时间
       if (rememberMe) {
         const expirationDate = new Date();
         expirationDate.setDate(expirationDate.getDate() + 30);
         document.cookie = `rememberedUser=${email}; expires=${expirationDate.toUTCString()}; path=/`;
       }
 
-      // 导航到首页
+      toast.success('登录成功！');
       router.push('/');
     } catch (err: any) {
-      setError(err.message || '登录失败，请检查邮箱和密码');
+      toast.error(err.message || '登录失败，请检查邮箱和密码');
     } finally {
       setIsLoading(false);
     }
@@ -44,9 +40,17 @@ export default function Login() {
 
   return (
     <div className="relative min-h-screen flex flex-col justify-end items-center bg-black overflow-hidden">
-      {/* 背景层 - 完全保持原始结构 */}
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: '#333',
+            color: '#fff',
+          },
+        }}
+      />
       <div className="absolute inset-0 z-0">
-        {/* 顶部背景 */}
         <div className="absolute top-0 left-0 w-full h-[75%] z-0">
           <Image 
             src="/images/bg_top.svg" 
@@ -59,7 +63,6 @@ export default function Login() {
           />
         </div>
 
-        {/* 中间半透明层 */}
         <div className="absolute top-[45%] left-0 w-full h-[35%] z-10 opacity-100">
           <Image 
             src="/images/bg_mid.svg" 
@@ -72,7 +75,6 @@ export default function Login() {
           />
         </div>
 
-        {/* 底部背景 */}
         <div className="absolute bottom-0 left-0 w-full h-[50%] z-0 opacity-100">
           <Image 
             src="/images/bg_but.svg" 
@@ -91,7 +93,6 @@ export default function Login() {
         爱邮坪 AUP
       </div>
 
-      {/* 登录框 - 严格保持原始结构 */}
       <div className="relative w-[490px] bg-black/0 backdrop-blur-md p-8 rounded-lg overflow-hidden shadow-xl mb-0 z-20">
         <div className="absolute inset-0 w-full h-full z-0 opacity-75">
           <Image 
@@ -105,14 +106,7 @@ export default function Login() {
           />
         </div>
 
-        {/* 登录表单 - 完全原始代码 */}
         <form onSubmit={handleSubmit} className="relative z-10 space-y-3 px-20 py-3 overflow-auto mt-auto">
-          {error && (
-            <div className="text-red-500 text-sm bg-red-100/10 p-2 rounded">
-              {error}
-            </div>
-          )}
-          
           <div>
             <label className="text-white text-base mt-auto">用户名:</label>
             <input

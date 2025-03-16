@@ -17,6 +17,7 @@ const TOPIC_COLORS: Record<string, { border: string; glow: string }> = {
 
 export default function TopicBlock() {
   const topicCards = [
+    { topic: '主题分类', sizeClass: 'col-span-2 row-span-1' },
     { topic: '资源分享', sizeClass: 'col-span-2 row-span-1' },
     { topic: '竞赛交流', sizeClass: 'col-span-2 row-span-1' },
     { topic: '学术交流', sizeClass: 'col-span-3 row-span-2' },
@@ -53,20 +54,13 @@ export default function TopicBlock() {
             h-1 bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 z-20 mt-6 overflow-hidden"></div>
           </div>
         
-          <div className="grid grid-cols-6 gap-3 p-4 pt-12 content-start w-full max-w-[1200px] mx-auto">
-          <div className="col-span-2 row-span-1 flex items-center justify-center">
-            <div className="w-full h-full bg-[#1A1A1A] rounded-2xl border-2 border-[#8A2BE2] p-6  flex items-center justify-center">
-              <h2 className="text-[35px] font-semibold text-[#9B59B6]">主题分类</h2>
-            </div>
-          </div>
+          <div className="grid grid-cols-6 gap-4 flex-auto relative z-10 flex-grow overflow-y-auto p-4 pt-12">
             {topicCards.map(({ topic, sizeClass }) => (
               <TopicCard
                 key={topic}
                 topic={topic}
                 colors={TOPIC_COLORS[topic as keyof typeof TOPIC_COLORS]}
                 sizeClass={sizeClass}
-                fontSize={topic === '学术交流' ? 'text-[50px]' : 'text-[30px]'}
-                
               />
             ))}
           </div>

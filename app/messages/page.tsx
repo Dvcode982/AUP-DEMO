@@ -12,7 +12,7 @@ export default function Messages() {
     <div className="flex h-screen text-foreground">
       <Sidebar />
       <main className="flex-1 p-4 overflow-hidden flex gap-4">
-        <div className="w-80">
+        <div className=" w-1/3 flex flex-col">
           <MessageList onSelectChat={setSelectedChat} />
         </div>
         <div className="flex-1">
