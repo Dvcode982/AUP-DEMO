@@ -63,6 +63,17 @@ function initializeTables() {
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (author_id) REFERENCES users (id)
   )`);
+
+  // 评论表
+  db.run(`CREATE TABLE IF NOT EXISTS comments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    post_id INTEGER NOT NULL,
+    author_id INTEGER NOT NULL,
+    content TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (post_id) REFERENCES posts (id),
+    FOREIGN KEY (author_id) REFERENCES users (id)
+  )`);
 }
 
 // JWT 中间件
@@ -92,6 +103,7 @@ app.get('/', (req, res) => {
 require('./routes/auth')(app, db, bcrypt, jwt);
 require('./routes/posts')(app, db, authenticateToken);
 require('./routes/lostAndFound')(app, db, authenticateToken);
+require('./routes/comments')(app, db, authenticateToken);
 
 // 错误处理中间件
 app.use((err, req, res, next) => {
@@ -105,4 +117,4 @@ app.use((err, req, res, next) => {
 // 启动服务器
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
-}); 
+});

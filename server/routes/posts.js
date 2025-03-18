@@ -83,10 +83,20 @@ module.exports = (app, db, authenticateToken) => {
 
   // 创建帖子
   app.post('/api/posts', authenticateToken, async (req, res) => {
-    const { content, media, category, privacy, location, tags } = req.body;
+    const { content, media, tags, category, privacy, location } = req.body;
 
     if (!content) {
       return res.status(400).json({ error: 'Content is required' });
+    }
+
+    // 从内容中提取标签（如果没有提供tags参数）
+    let extractedTags = tags || [];
+    if (!extractedTags.length) {
+      const tagRegex = /#([\u4e00-\u9fa5a-zA-Z0-9_]+)/g;
+      const matches = content.match(tagRegex);
+      if (matches) {
+        extractedTags = matches.map(tag => tag.substring(1));
+      }
     }
 
     db.serialize(() => {
@@ -95,7 +105,7 @@ module.exports = (app, db, authenticateToken) => {
       db.run(
         `INSERT INTO posts (author_id, content, image, category, privacy, location)
          VALUES (?, ?, ?, ?, ?, ?)`,
-        [req.user.userId, content, media?.[0], category, privacy, location],
+        [req.user.userId, content, media, category, privacy || 'public', location],
         function(err) {
           if (err) {
             db.run('ROLLBACK');
@@ -105,8 +115,8 @@ module.exports = (app, db, authenticateToken) => {
           const postId = this.lastID;
 
           // 添加标签
-          if (tags && tags.length > 0) {
-            const tagValues = tags.map(tag => `(${postId}, '${tag}')`).join(',');
+          if (extractedTags.length > 0) {
+            const tagValues = extractedTags.map(tag => `(${postId}, '${tag}')`).join(',');
             db.run(`INSERT INTO post_tags (post_id, tag) VALUES ${tagValues}`, [], (err) => {
               if (err) {
                 db.run('ROLLBACK');
@@ -130,4 +140,4 @@ module.exports = (app, db, authenticateToken) => {
       );
     });
   });
-}; 
+};

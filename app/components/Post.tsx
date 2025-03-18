@@ -13,11 +13,12 @@ interface PostProps {
   isLostAndFound?: boolean
   isReturned?: boolean
   returnedTime?: string
+  postType?: 'forum' | 'lostAndFound'
 }
 
-const Post = ({ id, author, avatar, content, image, time, tags, isLostAndFound, isReturned, returnedTime }: PostProps) => {
+const Post = ({ id, author, avatar, content, image, time, tags, isLostAndFound, isReturned, returnedTime, postType = 'forum' }: PostProps) => {
   return (
-    <Link href={`/post/${id}`} className="block">
+    <Link href={postType === 'lostAndFound' ? `/lost-and-found/${id}` : `/post/${id}`} className="block">
       <div className="bg-white dark:bg-gray-800 bg-opacity-90 dark:bg-opacity-90 rounded-lg shadow-sm overflow-hidden hover-lift relative">
         {isLostAndFound && (
           <div className="absolute top-2 right-2 flex items-center bg-white bg-opacity-90 rounded-full px-2 py-1 text-xs font-medium shadow-sm">
