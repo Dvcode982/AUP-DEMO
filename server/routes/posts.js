@@ -1,7 +1,9 @@
 module.exports = (app, db, authenticateToken) => {
   // 获取帖子列表
   app.get('/api/posts', async (req, res) => {
-    const query = `
+    const { search } = req.query;
+    
+    let query = `
       SELECT 
         p.id,
         u.email as author,
@@ -14,8 +16,14 @@ module.exports = (app, db, authenticateToken) => {
       FROM posts p
       JOIN users u ON p.author_id = u.id
       WHERE p.privacy = 'public'
-      ORDER BY p.created_at DESC
     `;
+    
+    // 如果有搜索参数，添加搜索条件
+    if (search) {
+      query += ` AND (p.content LIKE '%${search}%' OR p.category LIKE '%${search}%' OR p.location LIKE '%${search}%')`;
+    }
+    
+    query += ` ORDER BY p.created_at DESC`;
 
     db.all(query, [], (err, posts) => {
       if (err) {

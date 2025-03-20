@@ -98,8 +98,9 @@ export const authAPI = {
  */
 export const postsAPI = {
   // 获取帖子列表
-  getPosts: async () => {
-    return fetchAPI('/api/posts');
+  getPosts: async (search?: string) => {
+    const queryParams = search ? `?search=${encodeURIComponent(search)}` : '';
+    return fetchAPI(`/api/posts${queryParams}`);
   },
   
   // 创建新帖子
@@ -134,8 +135,9 @@ export const postsAPI = {
  */
 export const lostAndFoundAPI = {
   // 获取失物招领列表
-  getLostAndFoundItems: async () => {
-    return fetchAPI('/api/lost-and-found');
+  getLostAndFoundItems: async (search?: string) => {
+    const queryParams = search ? `?search=${encodeURIComponent(search)}` : '';
+    return fetchAPI(`/api/lost-and-found${queryParams}`);
   },
   
   // 创建失物招领

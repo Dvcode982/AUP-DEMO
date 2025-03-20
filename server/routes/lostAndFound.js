@@ -1,7 +1,9 @@
 module.exports = (app, db, authenticateToken) => {
   // 获取失物招领列表
   app.get('/api/lost-and-found', async (req, res) => {
-    const query = `
+    const { search } = req.query;
+    
+    let query = `
       SELECT 
         l.id,
         u.email as author,
@@ -11,8 +13,14 @@ module.exports = (app, db, authenticateToken) => {
         l.created_at as time
       FROM lost_and_found l
       JOIN users u ON l.author_id = u.id
-      ORDER BY l.created_at DESC
     `;
+    
+    // 如果有搜索参数，添加搜索条件
+    if (search) {
+      query += ` WHERE l.content LIKE '%${search}%'`;
+    }
+    
+    query += ` ORDER BY l.created_at DESC`;
 
     db.all(query, [], (err, items) => {
       if (err) {
