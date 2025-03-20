@@ -21,6 +21,9 @@ export async function fetchAPI(
   // 如果有token，添加到headers
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
+    console.log('Using token:', token);
+  } else {
+    console.log('No token found in localStorage');
   }
   
   const config = {
@@ -146,5 +149,25 @@ export const lostAndFoundAPI = {
   // 获取失物招领详情
   getLostAndFoundItemById: async (id: string) => {
     return fetchAPI(`/api/lost-and-found/${id}`);
+  },
+
+  // 获取失物招领评论
+  getLostAndFoundComments: async (itemId: string) => {
+    return fetchAPI(`/api/lost-and-found/${itemId}/comments`);
+  },
+
+  // 添加评论
+  addLostAndFoundComment: async (itemId: string, content: string) => {
+    return fetchAPI(`/api/lost-and-found/${itemId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    });
+  },
+
+  // 标记物品已找到/已归还
+  markAsReturned: async (itemId: string) => {
+    return fetchAPI(`/api/lost-and-found/${itemId}/return`, {
+      method: 'PUT',
+    });
   },
 };
