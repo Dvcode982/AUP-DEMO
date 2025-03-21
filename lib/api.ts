@@ -113,21 +113,53 @@ export const usersAPI = {
  * 消息相关API
  */
 export const messagesAPI = {
-  // 获取对话列表
   getConversations: async () => {
     return fetchAPI('/api/messages/conversations');
   },
   
-  // 获取与特定用户的聊天记录
-  getMessages: async (userId: string) => {
-    return fetchAPI(`/api/messages/${userId}`);
+  getMessages: async (chatId: string) => {
+    console.log('Fetching messages for chat:', chatId);
+    const response = await fetchAPI(`/api/messages/${chatId}`);
+    console.log('Received messages:', response);
+    return response;
   },
   
-  // 发送消息
-  sendMessage: async (receiverId: string, content: string) => {
+  sendMessage: async (receiverId: string, content: string, type: 'text' | 'image' = 'text') => {
+    console.log('Sending message:', { receiverId, content, type });
     return fetchAPI('/api/messages', {
       method: 'POST',
-      body: JSON.stringify({ receiverId, content }),
+      body: JSON.stringify({ receiverId, content, type }),
+    });
+  },
+
+  uploadImage: async (chatId: string, formData: FormData) => {
+    const file = formData.get('image') as File;
+    if (!file) throw new Error('No image file provided');
+
+    try {
+      console.log('Reading image file...');
+      // 添加图片大小检查
+      if (file.size > 10 * 1024 * 1024) { // 10MB 限制
+        throw new Error('Image too large, please select a file under 10MB');
+      }
+
+      const base64Image = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      return { url: base64Image };
+    } catch (error) {
+      console.error('Image process failed:', error);
+      throw error;
+    }
+  },
+
+  markAsRead: async (messageId: string) => {
+    return fetchAPI(`/api/messages/${messageId}/read`, {
+      method: 'POST',
     });
   },
 };

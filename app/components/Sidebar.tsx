@@ -49,7 +49,7 @@ const Sidebar = () => {
         {isAuthenticated && user ? (
           // 已登录状态显示用户信息
           <Link href="/my-profile" className="block">
-            <div className="bg-blue-50 dark:bg-gray-700 flex flex-col md:flex-row items-center md:space-x-3 p-3  rounded-lg text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-800 hover:text-blue-600 dark:hover:text-blue-300 transition-colors">
+            <div className="bg-blue-50 dark:bg-gray-700 flex flex-col md:flex-row items-center md:space-x-4 p-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-800 hover:text-blue-600 dark:hover:text-blue-300 transition-colors">
               {user.avatar ? (
                 <Image
                   src={user.avatar}
