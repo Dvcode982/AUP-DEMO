@@ -72,40 +72,57 @@ module.exports = (app, db, authenticateToken) => {
     const currentUserId = req.user.userId;
     const otherUserId = req.params.userId;
     
-    const query = `
-      SELECT 
-        m.id, m.content, m.created_at, 
-        CASE WHEN m.sender_id = ? THEN 'user' ELSE 'other' END as sender
-      FROM messages m
-      WHERE (m.sender_id = ? AND m.receiver_id = ?) OR (m.sender_id = ? AND m.receiver_id = ?)
-      ORDER BY m.created_at ASC
-    `;
-    
-    db.all(query, [currentUserId, currentUserId, otherUserId, otherUserId, currentUserId], (err, messages) => {
+    // 首先获取聊天伙伴的信息
+    db.get('SELECT id, email FROM users WHERE id = ?', [otherUserId], (err, partnerInfo) => {
       if (err) {
         return res.status(500).json({ error: 'Database error' });
       }
       
-      // 格式化消息
-      const formattedMessages = messages.map(msg => ({
-        id: msg.id.toString(),
-        sender: msg.sender,
-        content: msg.content,
-        timestamp: new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
-      }));
+      // 获取消息记录
+      const query = `
+        SELECT 
+          m.id, m.content, m.created_at, m.sender_id,
+          CASE WHEN m.sender_id = ? THEN 'user' ELSE 'other' END as sender
+        FROM messages m
+        WHERE (m.sender_id = ? AND m.receiver_id = ?) OR (m.sender_id = ? AND m.receiver_id = ?)
+        ORDER BY m.created_at ASC
+      `;
       
-      // 标记消息为已读
-      db.run(
-        'UPDATE messages SET is_read = TRUE WHERE sender_id = ? AND receiver_id = ? AND is_read = FALSE',
-        [otherUserId, currentUserId],
-        (err) => {
-          if (err) {
-            console.error('Error marking messages as read:', err.message);
-          }
+      db.all(query, [currentUserId, currentUserId, otherUserId, otherUserId, currentUserId], (err, messages) => {
+        if (err) {
+          return res.status(500).json({ error: 'Database error' });
         }
-      );
-      
-      res.json(formattedMessages);
+        
+        // 格式化消息
+        const formattedMessages = messages.map(msg => ({
+          id: msg.id.toString(),
+          sender: msg.sender,
+          senderId: msg.sender_id.toString(), // 添加发送者ID
+          content: msg.content,
+          createdAt: msg.created_at, // 添加原始时间戳
+          timestamp: new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+        }));
+        
+        // 标记消息为已读
+        db.run(
+          'UPDATE messages SET is_read = TRUE WHERE sender_id = ? AND receiver_id = ? AND is_read = FALSE',
+          [otherUserId, currentUserId],
+          (err) => {
+            if (err) {
+              console.error('Error marking messages as read:', err.message);
+            }
+          }
+        );
+        
+        // 返回消息和聊天伙伴信息
+        const partnerName = partnerInfo ? partnerInfo.email.split('@')[0] : '未知用户';
+        res.json({
+          messages: formattedMessages,
+          partnerName: partnerName,
+          partnerAvatar: '/images/lon.jpg',
+          partnerId: otherUserId
+        });
+      });
     });
   });
 
@@ -138,7 +155,7 @@ module.exports = (app, db, authenticateToken) => {
           
           // 返回新消息
           db.get(
-            'SELECT id, content, created_at FROM messages WHERE id = ?',
+            'SELECT id, content, created_at, sender_id FROM messages WHERE id = ?',
             [this.lastID],
             (err, message) => {
               if (err) {
@@ -148,7 +165,9 @@ module.exports = (app, db, authenticateToken) => {
               res.status(201).json({
                 id: message.id.toString(),
                 sender: 'user',
+                senderId: message.sender_id.toString(),
                 content: message.content,
+                createdAt: message.created_at, // 添加原始时间戳
                 timestamp: new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
               });
             }

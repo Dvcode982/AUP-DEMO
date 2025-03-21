@@ -51,21 +51,26 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
         const messagesData = Array.isArray(data) ? data : (data.messages || [])
         const formattedMessages = messagesData.map((msg: any) => ({
           id: msg.id,
+          // 使用senderId字段判断消息发送者
           sender: msg.senderId === localStorage.getItem('userId') ? 'user' : 'other',
           content: msg.content,
-          timestamp: new Date(msg.createdAt).toLocaleTimeString([], { 
+          // 使用createdAt字段格式化时间
+          timestamp: msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { 
             hour: '2-digit', 
             minute: '2-digit',
             hour12: false 
-          }),
+          }) : '未知时间',
           isRead: msg.isRead
         }))
         
         setMessages(formattedMessages)
-        setChatPartner({
-          name: data.partnerName || '未知用户',
-          avatar: data.partnerAvatar || '/images/lon.jpg'
-        })
+        // 设置聊天伙伴信息
+        if (data.partnerName) {
+          setChatPartner({
+            name: data.partnerName,
+            avatar: data.partnerAvatar || '/images/lon.jpg'
+          })
+        }
       } catch (err) {
         console.error('获取聊天历史失败:', err)
         setError('无法加载聊天历史')
@@ -116,11 +121,13 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
           msg.id === tempMsg.id ? {
             ...msg,
             id: response.id || msg.id,
-            timestamp: new Date(response.createdAt).toLocaleTimeString([], { 
+            // 确保使用正确的发送者标识
+            sender: 'user',
+            timestamp: response.createdAt ? new Date(response.createdAt).toLocaleTimeString([], { 
               hour: '2-digit', 
               minute: '2-digit',
               hour12: false 
-            })
+            }) : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
           } : msg
         ))
       } catch (err) {

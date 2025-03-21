@@ -77,8 +77,17 @@ export default function MessageList({ onSelectChat }: MessageListProps) {
   )
 
   // 处理用户选择
-  const handleUserSelect = (userId: string) => {
-    onSelectChat(userId)
+  const handleUserSelect = async (userId: string) => {
+    try {
+      // 先尝试发送一条初始消息来创建对话
+      await messagesAPI.sendMessage(userId, '你好，很高兴认识你！');
+      // 然后跳转到新创建的对话
+      onSelectChat(userId);
+      toast.success('成功创建新对话');
+    } catch (err) {
+      console.error('创建对话失败:', err);
+      toast.error('创建对话失败，请稍后再试');
+    }
   }
 
   // 防止水合不匹配
