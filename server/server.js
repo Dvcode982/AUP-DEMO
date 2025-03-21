@@ -172,6 +172,8 @@ require('./routes/posts')(app, db, authenticateToken);
 require('./routes/lostAndFound')(app, db, authenticateToken);
 require('./routes/comments')(app, db, authenticateToken);
 require('./routes/lostAndFoundComments')(app, db, authenticateToken);
+require('./routes/users')(app, db, authenticateToken);
+require('./routes/messages')(app, db, authenticateToken);
 
 // 错误处理中间件
 app.use((err, req, res, next) => {

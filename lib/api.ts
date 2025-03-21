@@ -40,9 +40,10 @@ export async function fetchAPI(
       if (typeof window !== 'undefined') {
         localStorage.removeItem('token');
         localStorage.removeItem('userId');
+        localStorage.removeItem('userData');
         
-        // 可以选择重定向到登录页面
-        // window.location.href = '/login';
+        // 重定向到登录页面
+        window.location.href = '/login';
       }
     }
     
@@ -68,17 +69,9 @@ export async function fetchAPI(
 }
 
 /**
- * 用户相关API
+ * 认证相关API
  */
 export const authAPI = {
-  // 用户登录
-  login: async (email: string, password: string) => {
-    return fetchAPI('/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
-  },
-  
   // 用户注册
   register: async (email: string, password: string, confirmPassword: string) => {
     return fetchAPI('/register', {
@@ -87,9 +80,55 @@ export const authAPI = {
     });
   },
   
-  // 获取当前用户信息
-  getCurrentUser: async () => {
-    return fetchAPI('/user/profile');
+  // 用户登录
+  login: async (email: string, password: string) => {
+    return fetchAPI('/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+  },
+};
+
+/**
+ * 用户相关API
+ */
+export const usersAPI = {
+  // 获取所有用户列表
+  getAllUsers: async () => {
+    return fetchAPI('/api/users');
+  },
+  
+  // 获取单个用户信息
+  getUserById: async (userId: string) => {
+    return fetchAPI(`/api/users/${userId}`);
+  },
+
+  // 通过邮箱搜索用户
+  searchUserByEmail: async (email: string) => {
+    return fetchAPI(`/api/users/search?email=${encodeURIComponent(email)}`);
+  },
+};
+
+/**
+ * 消息相关API
+ */
+export const messagesAPI = {
+  // 获取对话列表
+  getConversations: async () => {
+    return fetchAPI('/api/messages/conversations');
+  },
+  
+  // 获取与特定用户的聊天记录
+  getMessages: async (userId: string) => {
+    return fetchAPI(`/api/messages/${userId}`);
+  },
+  
+  // 发送消息
+  sendMessage: async (receiverId: string, content: string) => {
+    return fetchAPI('/api/messages', {
+      method: 'POST',
+      body: JSON.stringify({ receiverId, content }),
+    });
   },
 };
 
