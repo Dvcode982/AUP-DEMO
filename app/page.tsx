@@ -3,39 +3,51 @@ import Sidebar from './components/Sidebar'
 import Post from './components/Post'
 import SearchBar from './components/SearchBar'
 import FloatingActionButton from './components/FloatingActionButton'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import ChatWindow from './components/messages/ChatWindow'
-
-const posts = [
-  {
-    id: 1,
-    author: '用户A',
-    avatar: '/placeholder.svg?height=40&width=40',
-    content: '今天天气真好！',
-    time: '2023-07-01 10:00',
-    tags: ['天气', '心情', '分享']
-  },
-  {
-    id: 2,
-    author: '用户B',
-    avatar: '/placeholder.svg?height=40&width=40',
-    content: '推荐一本好书《百年孤独》',
-    time: '2023-07-01 11:30',
-    tags: ['读书', '推荐', '文学']
-  },
-  {
-    id: 3,
-    author: '用户C',
-    avatar: '/placeholder.svg?height=40&width=40',
-    content: '分享一道美食：红烧肉',
-    image: '/placeholder.svg?height=200&width=300',
-    time: '2023-07-01 12:45',
-    tags: ['美食', '烹饪', '分享']
-  }
-]
+import { postsAPI } from '@/lib/api'
 
 export default function Home() {
+  const [posts, setPosts] = useState([])
+  const [loading, setLoading] = useState(true)
   const [selectedChat] = useState<string | null>('2')
+  const [searchQuery, setSearchQuery] = useState('')
+  
+  useEffect(() => {
+    // 从URL获取搜索参数
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchParam = urlParams.get('search');
+    if (searchParam) {
+      setSearchQuery(searchParam);
+    }
+    
+    fetchPosts(searchParam || '');
+  }, [])
+  
+  // 搜索帖子
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query);
+    await fetchPosts(query);
+  }
+  
+  // 获取帖子数据
+  const fetchPosts = async (query: string) => {
+    try {
+      setLoading(true)
+      const data = await postsAPI.getPosts(query)
+      // 为每个帖子添加头像和postType
+      const postsWithAvatars = data.map(post => ({
+        ...post,
+        avatar: '/placeholder.svg?height=40&width=40',
+        postType: 'forum'
+      }))
+      setPosts(postsWithAvatars)
+    } catch (error) {
+      console.error('Error fetching posts:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <div className="flex h-screen bg-gradient-to-br ">
@@ -44,12 +56,18 @@ export default function Home() {
       <main className="flex-1 pt-4 pb-4 pl-4 overflow-hidden flex ">
         {/* 左侧：帖子列表，占据 50% */}
         <div className="w-2/3 flex flex-col mr-4">
-          <SearchBar />
+          <SearchBar onSearch={handleSearch} />
 
           <div className="flex flex-col space-y-4 mt-6 overflow-y-auto opacity-90" style={{ maxHeight: 'calc(100vh - 140px)' }}>
-            {posts.map(post => (
-              <Post key={post.id} {...post} />
-            ))}
+            {loading ? (
+              <div className="text-center py-10">加载中...</div>
+            ) : posts.length > 0 ? (
+              posts.map(post => (
+                <Post key={post.id} {...post} />
+              ))
+            ) : (
+              <div className="text-center py-10">暂无论坛帖子</div>
+            )}
           </div>
         </div>
 

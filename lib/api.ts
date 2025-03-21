@@ -21,6 +21,9 @@ export async function fetchAPI(
   // 如果有token，添加到headers
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
+    console.log('Using token:', token);
+  } else {
+    console.log('No token found in localStorage');
   }
   
   const config = {
@@ -37,9 +40,10 @@ export async function fetchAPI(
       if (typeof window !== 'undefined') {
         localStorage.removeItem('token');
         localStorage.removeItem('userId');
+        localStorage.removeItem('userData');
         
-        // 可以选择重定向到登录页面
-        // window.location.href = '/login';
+        // 重定向到登录页面
+        window.location.href = '/login';
       }
     }
     
@@ -65,17 +69,9 @@ export async function fetchAPI(
 }
 
 /**
- * 用户相关API
+ * 认证相关API
  */
 export const authAPI = {
-  // 用户登录
-  login: async (email: string, password: string) => {
-    return fetchAPI('/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
-  },
-  
   // 用户注册
   register: async (email: string, password: string, confirmPassword: string) => {
     return fetchAPI('/register', {
@@ -84,9 +80,55 @@ export const authAPI = {
     });
   },
   
-  // 获取当前用户信息
-  getCurrentUser: async () => {
-    return fetchAPI('/user/profile');
+  // 用户登录
+  login: async (email: string, password: string) => {
+    return fetchAPI('/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+  },
+};
+
+/**
+ * 用户相关API
+ */
+export const usersAPI = {
+  // 获取所有用户列表
+  getAllUsers: async () => {
+    return fetchAPI('/api/users');
+  },
+  
+  // 获取单个用户信息
+  getUserById: async (userId: string) => {
+    return fetchAPI(`/api/users/${userId}`);
+  },
+
+  // 通过邮箱搜索用户
+  searchUserByEmail: async (email: string) => {
+    return fetchAPI(`/api/users/search?email=${encodeURIComponent(email)}`);
+  },
+};
+
+/**
+ * 消息相关API
+ */
+export const messagesAPI = {
+  // 获取对话列表
+  getConversations: async () => {
+    return fetchAPI('/api/messages/conversations');
+  },
+  
+  // 获取与特定用户的聊天记录
+  getMessages: async (userId: string) => {
+    return fetchAPI(`/api/messages/${userId}`);
+  },
+  
+  // 发送消息
+  sendMessage: async (receiverId: string, content: string) => {
+    return fetchAPI('/api/messages', {
+      method: 'POST',
+      body: JSON.stringify({ receiverId, content }),
+    });
   },
 };
 
@@ -95,13 +137,14 @@ export const authAPI = {
  */
 export const postsAPI = {
   // 获取帖子列表
-  getPosts: async () => {
-    return fetchAPI('/posts');
+  getPosts: async (search?: string) => {
+    const queryParams = search ? `?search=${encodeURIComponent(search)}` : '';
+    return fetchAPI(`/api/posts${queryParams}`);
   },
   
   // 创建新帖子
   createPost: async (postData: any) => {
-    return fetchAPI('/posts', {
+    return fetchAPI('/api/posts', {
       method: 'POST',
       body: JSON.stringify(postData),
     });
@@ -109,7 +152,20 @@ export const postsAPI = {
   
   // 获取帖子详情
   getPostById: async (id: string) => {
-    return fetchAPI(`/posts/${id}`);
+    return fetchAPI(`/api/posts/${id}`);
+  },
+
+  // 获取帖子评论
+  getPostComments: async (postId: string) => {
+    return fetchAPI(`/api/posts/${postId}/comments`);
+  },
+
+  // 添加评论
+  addComment: async (postId: string, content: string) => {
+    return fetchAPI(`/api/posts/${postId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    });
   },
 };
 
@@ -118,15 +174,41 @@ export const postsAPI = {
  */
 export const lostAndFoundAPI = {
   // 获取失物招领列表
-  getLostAndFoundItems: async () => {
-    return fetchAPI('/lost-and-found');
+  getLostAndFoundItems: async (search?: string) => {
+    const queryParams = search ? `?search=${encodeURIComponent(search)}` : '';
+    return fetchAPI(`/api/lost-and-found${queryParams}`);
   },
   
   // 创建失物招领
   createLostAndFoundItem: async (itemData: any) => {
-    return fetchAPI('/lost-and-found', {
+    return fetchAPI('/api/lost-and-found', {
       method: 'POST',
       body: JSON.stringify(itemData),
     });
   },
-}; 
+  
+  // 获取失物招领详情
+  getLostAndFoundItemById: async (id: string) => {
+    return fetchAPI(`/api/lost-and-found/${id}`);
+  },
+
+  // 获取失物招领评论
+  getLostAndFoundComments: async (itemId: string) => {
+    return fetchAPI(`/api/lost-and-found/${itemId}/comments`);
+  },
+
+  // 添加评论
+  addLostAndFoundComment: async (itemId: string, content: string) => {
+    return fetchAPI(`/api/lost-and-found/${itemId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    });
+  },
+
+  // 标记物品已找到/已归还
+  markAsReturned: async (itemId: string) => {
+    return fetchAPI(`/api/lost-and-found/${itemId}/return`, {
+      method: 'PUT',
+    });
+  },
+};

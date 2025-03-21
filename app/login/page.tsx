@@ -21,6 +21,10 @@ export default function Login() {
 
     try {
       const data = await authAPI.login(email, password);
+      console.log('Login response:', data);
+      if (!data.token) {
+        throw new Error('登录失败：服务器未返回有效的认证令牌');
+      }
       login(data.token, data.userId);
       
       if (rememberMe) {

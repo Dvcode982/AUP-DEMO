@@ -1,7 +1,7 @@
 const sqlite3 = require('sqlite3').verbose();
 
 // 创建数据库连接
-const db = new sqlite3.Database('./users.db', (err) => {
+const db = new sqlite3.Database('./database.sqlite', (err) => {
   if (err) {
     console.error('Error opening database', err.message);
   } else {
@@ -17,4 +17,4 @@ const db = new sqlite3.Database('./users.db', (err) => {
   }
 });
 
-module.exports = db; 
+module.exports = db;

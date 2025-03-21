@@ -1,7 +1,9 @@
 module.exports = (app, db, authenticateToken) => {
   // 获取失物招领列表
   app.get('/api/lost-and-found', async (req, res) => {
-    const query = `
+    const { search } = req.query;
+    
+    let query = `
       SELECT 
         l.id,
         u.email as author,
@@ -11,8 +13,14 @@ module.exports = (app, db, authenticateToken) => {
         l.created_at as time
       FROM lost_and_found l
       JOIN users u ON l.author_id = u.id
-      ORDER BY l.created_at DESC
     `;
+    
+    // 如果有搜索参数，添加搜索条件
+    if (search) {
+      query += ` WHERE l.content LIKE '%${search}%'`;
+    }
+    
+    query += ` ORDER BY l.created_at DESC`;
 
     db.all(query, [], (err, items) => {
       if (err) {
@@ -67,6 +75,39 @@ module.exports = (app, db, authenticateToken) => {
     );
   });
 
+  // 获取单个失物招领详情
+  app.get('/api/lost-and-found/:id', async (req, res) => {
+    const { id } = req.params;
+
+    const query = `
+      SELECT 
+        l.id,
+        u.email as author,
+        l.content,
+        l.is_returned as isReturned,
+        l.returned_time as returnedTime,
+        l.created_at as time
+      FROM lost_and_found l
+      JOIN users u ON l.author_id = u.id
+      WHERE l.id = ?
+    `;
+
+    db.get(query, [id], (err, item) => {
+      if (err) {
+        return res.status(500).json({ error: 'Database error' });
+      }
+      if (!item) {
+        return res.status(404).json({ error: 'Item not found' });
+      }
+
+      // 添加固定标签
+      item.tags = ['失物招领'];
+      item.isLostAndFound = true;
+      
+      res.json(item);
+    });
+  });
+
   // 创建失物招领帖子
   app.post('/api/lost-and-found', authenticateToken, async (req, res) => {
     const { content } = req.body;
@@ -90,4 +131,4 @@ module.exports = (app, db, authenticateToken) => {
       }
     );
   });
-}; 
+};
