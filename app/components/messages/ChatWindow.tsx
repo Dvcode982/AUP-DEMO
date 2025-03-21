@@ -165,8 +165,15 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
 
             <div className="flex items-center mx-auto px-2">
               <Avatar className="h-7 w-7 mr-3">
-                <AvatarImage src={chatPartner.avatar} alt="Chat partner" />
-                <AvatarFallback>{chatPartner.name[0]}</AvatarFallback>
+                <AvatarImage 
+                  src={chatPartner.avatar || null} 
+                  alt={chatPartner.name} 
+                  onError={(e) => {
+                    e.currentTarget.src = "";
+                    e.currentTarget.onerror = null;
+                  }} 
+                />
+                <AvatarFallback>{chatPartner.name?.[0] || "?"}</AvatarFallback>
               </Avatar>
               <h2 className="font-medium text-gray-800 dark:text-gray-200">{chatPartner.name}</h2>
             </div>
@@ -199,8 +206,8 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
             <div key={message.id} className={`mt-6 flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
             {message.sender !== 'user' && (
               <Avatar className="h-8 w-8 mr-2">
-                <AvatarImage src="/images/lon.jpg" alt="User avatar" />
-                <AvatarFallback>U</AvatarFallback>
+                <AvatarImage src={chatPartner.avatar || "/images/lon.jpg"} alt={`${chatPartner.name} avatar`} />
+                <AvatarFallback>{chatPartner.name?.[0] || "U"}</AvatarFallback>
               </Avatar>
             )}
             <div className="flex flex-col">
@@ -215,7 +222,14 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
             </div>
             {message.sender === 'user' && (
               <Avatar className="h-8 w-8 ml-2">
-                <AvatarImage src="/images/avt.jpg" alt="User avatar" />
+                <AvatarImage 
+                  src="/images/avt.jpg" 
+                  alt="User avatar" 
+                  onError={(e) => {
+                    e.currentTarget.src = "";
+                    e.currentTarget.onerror = null;
+                  }} 
+                />
                 <AvatarFallback>U</AvatarFallback>
               </Avatar>
             )}
