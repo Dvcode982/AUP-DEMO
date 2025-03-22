@@ -49,7 +49,7 @@ const Sidebar = () => {
         {isAuthenticated && user ? (
           // 已登录状态显示用户信息
           <Link href="/my-profile" className="block">
-            <div className="flex flex-col md:flex-row items-center md:space-x-3 p-1 md:p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-800 hover:text-blue-600 dark:hover:text-blue-300 transition-colors">
+            <div className="bg-blue-50 dark:bg-gray-700 flex flex-col md:flex-row items-center md:space-x-4 p-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-800 hover:text-blue-600 dark:hover:text-blue-300 transition-colors">
               {user.avatar ? (
                 <Image
                   src={user.avatar}
@@ -80,10 +80,7 @@ const Sidebar = () => {
                 </p>
               </div>
             </div>
-            <div className="mt-2 bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent h-[1px] hidden md:block"></div>
-            <div className="text-center text-xs text-blue-600 dark:text-blue-400 mt-2 hover:underline hidden md:block">
-              点击编辑个人资料
-            </div>
+            <div className="bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent h-[1px] hidden md:block"></div>
           </Link>
         ) : (
           // 未登录状态显示登录入口
@@ -104,7 +101,7 @@ const Sidebar = () => {
                 href="/register"
                 className="flex-1 py-1 md:py-1.5 px-2 md:px-3 border border-blue-400 text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900 text-xs md:text-sm rounded-md transition-colors duration-200 flex items-center justify-center"
               >
-                <span className="hidden md:inline">注册</span>
+                <span className="hidden md:inline">注册</span> 
                 <span className="md:hidden">注</span>
               </Link>
             </div>

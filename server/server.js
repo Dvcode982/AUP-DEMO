@@ -12,7 +12,8 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 // 中间件
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '50mb' }));  // 增加限制到 50MB
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));  // 同样增加 urlencoded 的限制
 app.use(cors());
 
 // 初始化数据库
