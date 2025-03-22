@@ -6,12 +6,24 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import TextInput from './create-post/TextInput'
 import MediaUpload from './create-post/MediaUpload'
 import EmojiPicker from './create-post/EmojiPicker'
+import TagSelector from './create-post/TagSelector'
 import { postsAPI } from '@/lib/api'
+import { useSearchParams } from 'next/navigation'
 
 export default function CreatePost() {
   const [content, setContent] = useState('')
   const [media, setMedia] = useState<File[]>([])
   const [tags, setTags] = useState<string[]>([])
+  const [category, setCategory] = useState<string>('')
+  const searchParams = useSearchParams()
+  
+  // 从URL获取主题参数
+  useEffect(() => {
+    const topicParam = searchParams.get('topic')
+    if (topicParam) {
+      setCategory(topicParam)
+    }
+  }, [searchParams])
 
   // 当内容变化时，解析标签
   useEffect(() => {
@@ -22,9 +34,9 @@ export default function CreatePost() {
     if (matches) {
       // 提取标签文本（去掉#符号）
       const extractedTags = matches.map(tag => tag.substring(1))
-      setTags(extractedTags)
-    } else {
-      setTags([])
+      // 合并从内容中提取的标签和手动选择的标签，去重
+      const allTags = Array.from(new Set([...tags, ...extractedTags]))
+      setTags(allTags)
     }
   }, [content])
 
@@ -36,7 +48,8 @@ export default function CreatePost() {
       const response = await postsAPI.createPost({
         content,
         media: media.length > 0 ? URL.createObjectURL(media[0]) : null,
-        tags
+        tags,
+        category
       })
       
       console.log('Post created:', response)
@@ -44,8 +57,13 @@ export default function CreatePost() {
       // 重置表单
       setContent('')
       setMedia([])
+      setTags([])
+      
+      // 可以添加成功提示或跳转到帖子列表页
+      alert('帖子发布成功！')
     } catch (error) {
       console.error('Error creating post:', error)
+      alert('发布失败，请重试')
     }
   }
 
@@ -61,15 +79,13 @@ export default function CreatePost() {
             onChange={setContent}
             onEmojiSelect={(emoji) => setContent(prev => prev + emoji)}
           />
-          {tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-2">
-              {tags.map((tag, index) => (
-                <span key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
-                  #{tag}
-                </span>
-              ))}
-            </div>
-          )}
+          
+          <TagSelector 
+            selectedTags={tags} 
+            onTagsChange={setTags} 
+            topic={category} 
+          />
+          
           <MediaUpload onFileSelect={setMedia} />
         </CardContent>
         <CardFooter>

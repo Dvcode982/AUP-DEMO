@@ -131,7 +131,10 @@ export default function FriendsList() {
                     onClick={() => handleFriendClick(friend.id)}
                   >
                     <Avatar className="h-12 w-12 mr-4">
-                      <AvatarImage src={friend.avatar} alt={friend.name} />
+                      <AvatarImage src={friend.avatar || null} alt={friend.name} onError={(e) => {
+                        e.currentTarget.src = null;
+                        e.currentTarget.onerror = null;
+                      }} />
                       <AvatarFallback>{friend.name[0]}</AvatarFallback>
                     </Avatar>
                     <div className="flex-grow">

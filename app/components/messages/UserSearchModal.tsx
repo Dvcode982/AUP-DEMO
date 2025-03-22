@@ -105,7 +105,10 @@ export default function UserSearchModal({ isOpen, onClose, onSelectUser }: UserS
                   onClick={() => handleSelectUser(user.id)}
                 >
                   <Avatar className="h-10 w-10 mr-3">
-                    <AvatarImage src="/images/lon.jpg" alt={user.email} />
+                    <AvatarImage src="/images/lon.jpg" alt={user.email} onError={(e) => {
+                      e.currentTarget.src = null;
+                      e.currentTarget.onerror = null;
+                    }} />
                     <AvatarFallback>{user.email[0]}</AvatarFallback>
                   </Avatar>
                   <div>

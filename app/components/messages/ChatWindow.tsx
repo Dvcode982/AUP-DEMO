@@ -169,7 +169,7 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
                   src={chatPartner.avatar || null} 
                   alt={chatPartner.name} 
                   onError={(e) => {
-                    e.currentTarget.src = "";
+                    e.currentTarget.src = null;
                     e.currentTarget.onerror = null;
                   }} 
                 />
@@ -226,7 +226,7 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
                   src="/images/avt.jpg" 
                   alt="User avatar" 
                   onError={(e) => {
-                    e.currentTarget.src = "";
+                    e.currentTarget.src = null;
                     e.currentTarget.onerror = null;
                   }} 
                 />

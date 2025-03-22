@@ -136,7 +136,10 @@ export default function MessageList({ onSelectChat }: MessageListProps) {
             onClick={() => onSelectChat(message.id)}
             >
             <Avatar className="h-10 w-10 mr-3">
-              <AvatarImage src={message.user?.avatar || '/images/lon.jpg'} alt={message.user?.name || '未知用户'} />
+              <AvatarImage src={message.user?.avatar || '/images/lon.jpg'} alt={message.user?.name || '未知用户'} onError={(e) => {
+                e.currentTarget.src = null;
+                e.currentTarget.onerror = null;
+              }} />
               <AvatarFallback>{message.user?.name?.[0] || '?'}</AvatarFallback>
             </Avatar>
             <div className="flex-grow min-w-0">
