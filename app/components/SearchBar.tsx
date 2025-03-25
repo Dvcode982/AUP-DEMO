@@ -47,14 +47,14 @@ const SearchBar = ({ onSearch }: SearchBarProps = {}) => {
   if (!mounted) return null;
 
   return (
-    <div className="flex items-center space-x-2 bg-white dark:bg-gray-800 p-2 rounded-lg border border-gray-200 dark:border-gray-700 opacity-80">
+    <div className="flex items-center space-x-2 bg-white dark:bg-gray-800 bg-opacity-80 dark:bg-opacity-80 backdrop-blur-sm p-3 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
       {/* 搜索框 */}
-      <div className="relative flex-1 ">
+      <div className="relative flex-1">
         <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
         <input
           type="text"
           placeholder={isLostAndFound ? "搜索失物招领..." : "搜索帖子..."}
-          className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-blue-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800"
+          className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 bg-opacity-60 dark:bg-opacity-60 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-700 focus:border-blue-400 dark:focus:border-blue-600 transition-all duration-200"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyPress={handleKeyPress}
@@ -64,7 +64,7 @@ const SearchBar = ({ onSearch }: SearchBarProps = {}) => {
       {/* 搜索按钮 */}
       <button 
         onClick={handleSearch}
-        className="flex items-center p-2 rounded-lg bg-blue-500 text-white border border-blue-600 hover:bg-blue-600 transition-colors duration-200"
+        className="flex items-center justify-center p-2.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white border border-blue-600 shadow-sm transition-all duration-200 hover:shadow-md"
       >
         <SearchIcon className="w-5 h-5" />
       </button>
@@ -72,13 +72,13 @@ const SearchBar = ({ onSearch }: SearchBarProps = {}) => {
       {/* 筛选按钮 */}
       <button 
         onClick={() => setShowFilters(!showFilters)}
-        className="flex items-center p-2 rounded-lg bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-blue-800 hover:text-blue-600 dark:hover:text-blue-300 transition-colors duration-200"
+        className="flex items-center justify-center p-2.5 rounded-lg bg-white dark:bg-gray-800 bg-opacity-60 dark:bg-opacity-60 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-blue-900 hover:text-blue-600 dark:hover:text-blue-300 shadow-sm transition-all duration-200 hover:shadow-md"
       >
         <FilterIcon className="w-5 h-5" />
       </button>
 
       {/* 发帖按钮 */}
-      <Link href="/create-post" className="flex items-center p-2 rounded-lg bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-blue-800 hover:text-blue-600 dark:hover:text-blue-300 transition-colors duration-200">
+      <Link href="/create-post" className="flex items-center justify-center p-2.5 rounded-lg bg-white dark:bg-gray-800 bg-opacity-60 dark:bg-opacity-60 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-blue-900 hover:text-blue-600 dark:hover:text-blue-300 shadow-sm transition-all duration-200 hover:shadow-md">
         <PlusCircle className="w-5 h-5" />
       </Link>
     </div>

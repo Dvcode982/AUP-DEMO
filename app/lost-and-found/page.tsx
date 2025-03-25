@@ -53,15 +53,15 @@ export default function LostAndFound() {
       <main className="flex-1 p-4 overflow-hidden">
         <div className="max-w-6xl mx-auto">
           <SearchBar onSearch={handleSearch} />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4 overflow-y-auto " style={{maxHeight: 'calc(100vh - 140px)'}}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-4 overflow-y-auto " style={{maxHeight: 'calc(100vh - 140px)'}}>
             {loading ? (
-              <div className="col-span-3 text-center py-10">加载中...</div>
+              <div className="col-span-4 text-center py-10">加载中...</div>
             ) : lostAndFoundPosts.length > 0 ? (
               lostAndFoundPosts.map(post => (
                 <Post key={post.id} {...post} />
               ))
             ) : (
-              <div className="col-span-3 text-center py-10">暂无失物招领信息</div>
+              <div className="col-span-4 text-center py-10">暂无失物招领信息</div>
             )}
           </div>
           <FloatingActionButton />

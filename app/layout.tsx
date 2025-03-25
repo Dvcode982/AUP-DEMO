@@ -1,4 +1,5 @@
 import './globals.css'
+import './styles/card-text-fade.css'
 import { Inter } from 'next/font/google'
 import { ThemeProvider } from 'next-themes'
 import { BackgroundProvider } from './contexts/BackgroundContext'

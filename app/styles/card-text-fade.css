@@ -1,0 +1,122 @@
+/* 卡片文字渐隐效果样式 */
+.text-fade-container {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+.text-fade-content {
+  transition: max-height 0.3s ease;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.text-fade-mask {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2.5rem;
+  background: linear-gradient(to top, var(--card-bg-color) 20%, transparent 100%);
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+/* 亮色模式下的渐变颜色 */
+:root {
+  --card-bg-color: rgba(255, 255, 255, 0.9);
+}
+
+/* 暗色模式下的渐变颜色 */
+.dark {
+  --card-bg-color: rgba(31, 41, 55, 0.9);
+}
+
+/* 卡片动态高度调整 */
+.card-dynamic-height {
+  min-height: 12rem;
+  transition: height 0.3s ease;
+}
+
+/* 移除鼠标悬停时隐藏渐变遮罩的效果 */
+/* .group:hover .text-fade-mask {
+  opacity: 0;
+} */
+
+/* 文本展开动画 */
+.text-expand-animation {
+  transition: max-height 0.3s ease, opacity 0.2s ease;
+}
+
+/* 图片渐隐效果 */
+.image-fade {
+  position: relative;
+  display: block;
+}
+
+.image-fade-mask {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 15%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.5) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+/* 流体网格布局样式 */
+@media (max-width: 640px) {
+  .grid-fluid > * {
+    width: 100%;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 768px) {
+  .grid-fluid > * {
+    width: calc(50% - 0.5rem);
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .grid-fluid > * {
+    width: calc(33.333% - 0.667rem);
+  }
+}
+
+@media (min-width: 1025px) {
+  .grid-fluid > * {
+    width: calc(25% - 0.75rem);
+  }
+}
+
+/* 文字自动换行样式 */
+.text-wrap-anywhere {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+/* 卡片内容样式增强 */
+.card-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+/* 文字自动换行样式 */
+.text-wrap-anywhere {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+/* 卡片内容样式增强 */
+.card-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}

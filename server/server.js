@@ -16,17 +16,20 @@ app.use(bodyParser.json({ limit: '50mb' }));  // 增加限制到 50MB
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));  // 同样增加 urlencoded 的限制
 app.use(cors());
 
-// 初始化数据库
+// 初始化论坛数据库
 const db = new sqlite3.Database('./database.sqlite', (err) => {
   if (err) {
-    console.error('Error opening database', err.message);
+    console.error('Error opening forum database', err.message);
   } else {
-    console.log('Connected to SQLite database');
+    console.log('Connected to the Forum SQLite database');
     initializeTables()
       .then(() => runMigrations())
       .catch(err => console.error('Error during initialization:', err));
   }
 });
+
+// 引入失物招领数据库连接
+const dbLostFound = require('./db_lost_found');
 
 // 运行迁移脚本
 async function runMigrations() {
@@ -58,7 +61,7 @@ async function runMigrations() {
   }
 }
 
-// 初始化数据库表
+// 初始化论坛数据库表
 function initializeTables() {
   return new Promise((resolve, reject) => {
     // 用户表
@@ -101,40 +104,24 @@ function initializeTables() {
             return reject(err);
           }
           
-          // 失物招领表
-          db.run(`CREATE TABLE IF NOT EXISTS lost_and_found (
+          // 评论表 (仅用于论坛帖子)
+          db.run(`CREATE TABLE IF NOT EXISTS comments (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            post_id INTEGER NOT NULL,
             author_id INTEGER NOT NULL,
             content TEXT NOT NULL,
-            is_returned BOOLEAN DEFAULT FALSE,
-            returned_time DATETIME,
+            post_type TEXT DEFAULT 'post',
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (post_id) REFERENCES posts (id),
             FOREIGN KEY (author_id) REFERENCES users (id)
           )`, (err) => {
             if (err) {
-              console.error('Error creating lost_and_found table:', err.message);
+              console.error('Error creating comments table:', err.message);
               return reject(err);
             }
             
-            // 评论表
-            db.run(`CREATE TABLE IF NOT EXISTS comments (
-              id INTEGER PRIMARY KEY AUTOINCREMENT,
-              post_id INTEGER NOT NULL,
-              author_id INTEGER NOT NULL,
-              content TEXT NOT NULL,
-              post_type TEXT DEFAULT 'post',
-              created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-              FOREIGN KEY (post_id) REFERENCES posts (id),
-              FOREIGN KEY (author_id) REFERENCES users (id)
-            )`, (err) => {
-              if (err) {
-                console.error('Error creating comments table:', err.message);
-                return reject(err);
-              }
-              
-              console.log('All tables initialized successfully');
-              resolve();
-            });
+            console.log('All forum tables initialized successfully');
+            resolve();
           });
         });
       });
@@ -170,11 +157,13 @@ app.get('/', (req, res) => {
 // 导入路由
 require('./routes/auth')(app, db, bcrypt, jwt);
 require('./routes/posts')(app, db, authenticateToken);
-require('./routes/lostAndFound')(app, db, authenticateToken);
 require('./routes/comments')(app, db, authenticateToken);
-require('./routes/lostAndFoundComments')(app, db, authenticateToken);
 require('./routes/users')(app, db, authenticateToken);
 require('./routes/messages')(app, db, authenticateToken);
+
+// 失物招领相关路由使用独立数据库
+require('./routes/lostAndFound')(app, dbLostFound, authenticateToken);
+require('./routes/lostAndFoundComments')(app, dbLostFound, authenticateToken);
 
 // 错误处理中间件
 app.use((err, req, res, next) => {

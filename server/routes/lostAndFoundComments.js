@@ -9,9 +9,9 @@ module.exports = (app, db, authenticateToken) => {
         u.email as author,
         c.content,
         c.created_at as time
-      FROM comments c
+      FROM lost_found_comments c
       JOIN users u ON c.author_id = u.id
-      WHERE c.post_id = ? AND c.post_type = 'lost_and_found'
+      WHERE c.item_id = ?
       ORDER BY c.created_at ASC
     `;
 
@@ -43,10 +43,10 @@ module.exports = (app, db, authenticateToken) => {
           return res.status(404).json({ error: 'Lost and found item not found' });
         }
 
-        // 添加评论
+        // 添加评论到失物招领评论表
         db.run(
-          `INSERT INTO comments (post_id, author_id, content, post_type)
-           VALUES (?, ?, ?, 'lost_and_found')`,
+          `INSERT INTO lost_found_comments (item_id, author_id, content)
+           VALUES (?, ?, ?)`,
           [itemId, req.user.userId, content],
           function(err) {
             if (err) {
