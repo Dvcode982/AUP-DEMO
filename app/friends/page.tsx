@@ -131,8 +131,9 @@ export default function FriendsList() {
                     onClick={() => handleFriendClick(friend.id)}
                   >
                     <Avatar className="h-12 w-12 mr-4">
-                      <AvatarImage src={friend.avatar || null} alt={friend.name} onError={(e) => {
-                        e.currentTarget.src = null;
+                      <AvatarImage src={friend.avatar || '/images/lon.jpg'} alt={friend.name} onError={(e) => {
+                        // 不使用空字符串作为src，而是使用默认图片
+                        (e.currentTarget as HTMLImageElement).src = '/images/lon.jpg';
                         e.currentTarget.onerror = null;
                       }} />
                       <AvatarFallback>{friend.name[0]}</AvatarFallback>

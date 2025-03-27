@@ -137,7 +137,8 @@ export default function MessageList({ onSelectChat }: MessageListProps) {
             >
             <Avatar className="h-10 w-10 mr-3">
               <AvatarImage src={message.user?.avatar || '/images/lon.jpg'} alt={message.user?.name || '未知用户'} onError={(e) => {
-                e.currentTarget.src = null;
+                // 不使用空字符串作为src，而是使用默认图片
+                (e.currentTarget as HTMLImageElement).src = '/images/lon.jpg';
                 e.currentTarget.onerror = null;
               }} />
               <AvatarFallback>{message.user?.name?.[0] || '?'}</AvatarFallback>

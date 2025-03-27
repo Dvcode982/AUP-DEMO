@@ -106,7 +106,8 @@ export default function UserSearchModal({ isOpen, onClose, onSelectUser }: UserS
                 >
                   <Avatar className="h-10 w-10 mr-3">
                     <AvatarImage src="/images/lon.jpg" alt={user.email} onError={(e) => {
-                      e.currentTarget.src = null;
+                      // 不使用空字符串作为src，而是使用默认图片
+                      (e.currentTarget as HTMLImageElement).src = '/images/lon.jpg';
                       e.currentTarget.onerror = null;
                     }} />
                     <AvatarFallback>{user.email[0]}</AvatarFallback>
