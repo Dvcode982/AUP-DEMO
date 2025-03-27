@@ -44,10 +44,22 @@ export default function CreatePost() {
     e.preventDefault()
     
     try {
+      // 处理图片上传
+      let mediaBase64 = null
+      if (media.length > 0) {
+        // 将图片转换为base64格式
+        mediaBase64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader()
+          reader.onloadend = () => resolve(reader.result as string)
+          reader.onerror = reject
+          reader.readAsDataURL(media[0])
+        })
+      }
+      
       // 调用API发布帖子
       const response = await postsAPI.createPost({
         content,
-        media: media.length > 0 ? URL.createObjectURL(media[0]) : null,
+        media: mediaBase64, // 使用base64格式的图片数据
         tags,
         category
       })
