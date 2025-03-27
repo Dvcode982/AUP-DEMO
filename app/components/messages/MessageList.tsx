@@ -158,7 +158,7 @@ export default function MessageList({ onSelectChat }: MessageListProps) {
               <p className={`text-sm truncate ${
               message.unread ? 'text-indigo-700 dark:text-indigo-300' : 'text-indigo-600 dark:text-indigo-400'
               }`}>
-              {message.lastMessage}
+              {formatMessageContent(message.lastMessage)}
               </p>
             </div>
             </div>
@@ -167,5 +167,20 @@ export default function MessageList({ onSelectChat }: MessageListProps) {
     </div>
   )
 }
+
+ 
+
+  // 检测消息是否为base64编码的图片
+  const isBase64Image = (content: string): boolean => {
+    return content?.startsWith('data:image') || false;
+  }
+
+  // 格式化消息内容，如果是图片则显示[图片]文本
+  const formatMessageContent = (content: string): string => {
+    if (isBase64Image(content)) {
+      return '[图片]';
+    }
+    return content;
+  }
 
  
