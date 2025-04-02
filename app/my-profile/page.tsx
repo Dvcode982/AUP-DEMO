@@ -78,7 +78,7 @@ export default function MyProfile() {
               {/* 顶部信息区 */}
               <div className="relative bg-gradient-to-r from-blue-500 to-indigo-600 h-40">
                 <div className="absolute -bottom-16 left-8">
-                  {user?.avatar ? (
+                  {user?.avatar && user.avatar !== "" ? (
                     <Image
                       src={user.avatar}
                       alt="用户头像"

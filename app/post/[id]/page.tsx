@@ -171,7 +171,7 @@ export default function PostPage() {
             </div>
           </div>
 
-          {post.image && (
+          {post.image && post.image !== "" && (
             <div className="mb-4 rounded-lg overflow-hidden">
               <Image 
                 src={post.image} 
@@ -229,7 +229,7 @@ export default function PostPage() {
                 <div key={comment.id} className="pb-4 last:pb-0 border-b last:border-b-0 border-gray-100 dark:border-gray-700">
                   <div className="flex items-start">
                     <Image 
-                      src={comment.avatar || '/placeholder.svg?height=32&width=32'} 
+                      src={comment.avatar === "" ? '/placeholder.svg?height=32&width=32' : (comment.avatar || '/placeholder.svg?height=32&width=32')} 
                       alt={comment.author} 
                       width={32} 
                       height={32} 

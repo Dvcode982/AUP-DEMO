@@ -129,7 +129,7 @@ const LostFoundCard = ({
             )}
           </div>
           
-          {displayImage && (
+          {displayImage && displayImage !== "" && (
             <div className="mb-3 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 relative">
               <div className="relative">
                 <Image src={displayImage} alt="Lost and found item image" width={300} height={200} className="w-full h-auto image-fade" />

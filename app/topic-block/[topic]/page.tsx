@@ -2,7 +2,7 @@
 
 import { useParams, useSearchParams } from 'next/navigation'
 import Sidebar from '../../components/Sidebar'
-import PostList from '../../components/PostList'
+import Post from '../../components/Post'
 import TopicContent from '../../components/TopicContent'
 import { useState, useEffect } from 'react'
 import { postsAPI } from '@/lib/api'
@@ -106,8 +106,45 @@ export default function TopicDetail() {
       try {
         setLoading(true);
         // 直接使用API获取特定主题的帖子
-        const data = await postsAPI.getPosts(null, topic);
-        setPosts(data || []);
+        const data = await postsAPI.getPosts(undefined, topic);
+        
+        // 获取带有当前主题标签的所有帖子
+        // 例如：如果当前主题是"表白墙"，则获取所有带有"表白墙"相关标签的帖子
+        const mainTagPosts = await postsAPI.getPosts(undefined, undefined, getTopicMainTag(topic));
+        
+        // 合并两种帖子并去重
+        const allPosts = [...data];
+        
+        // 将主标签帖子添加到结果中（避免重复）
+        mainTagPosts.forEach((tagPost: { id: string }) => {
+          if (!allPosts.some(post => post.id === tagPost.id)) {
+            allPosts.push(tagPost);
+          }
+        });
+        
+        // 获取主题下的所有子标签
+        const subTags = getTopicSubTags(topic);
+        
+        // 对每个子标签获取相关帖子
+        for (const subTag of subTags) {
+          const tagText = subTag.replace('#', '');
+          const subTagPosts = await postsAPI.getPosts(undefined, undefined, tagText);
+          
+          // 将子标签帖子添加到结果中（避免重复）
+          subTagPosts.forEach((tagPost: { id: string }) => {
+            if (!allPosts.some(post => post.id === tagPost.id)) {
+              allPosts.push(tagPost);
+            }
+          });
+        }
+        
+        setPosts(allPosts as Array<{
+          id: string;
+          title: string;
+          content: string;
+          tags?: string[];
+          // 添加其他可能的帖子属性
+        }> || []);
       } catch (err) {
         console.error('Error fetching posts:', err);
         setError('无法加载帖子，请稍后再试');
@@ -119,6 +156,63 @@ export default function TopicDetail() {
     fetchPosts();
   }, [topic]);
   
+  // 获取主题对应的主标签
+  const getTopicMainTag = (topicName: string) => {
+    const tagMap: { [key: string]: string } = {
+      '学术交流': '学术',
+      '资源分享': '资源',
+      '竞赛交流': '竞赛',
+      '校园生活': '校园',
+      '校园杂谈': '杂谈',
+      '技术交流': '技术',
+      '表白墙': '表白',
+      '就业兼职': '就业'
+    };
+    return tagMap[topicName] || topicName;
+  };
+  
+  // 获取主题对应的子标签列表
+  const getTopicSubTags = (topicName: string) => {
+    const tagMap: { [key: string]: string[] } = {
+      '学术交流': [
+        '#计导坛', '#数分坛', '#英语坛', '#线代坛', 
+        '#网导坛', '#信通坛', '#心导坛', '#数学坛', 
+        '#物理坛', '#生物学坛', '#地质学坛', '#气象学坛', 
+        '#经济学坛', '#政治学坛', '#社会学坛', '#量子力学坛', 
+        '#机械工程坛', '#土木工程坛', '#电气工程坛'
+      ],
+      '资源分享': [
+        '#电子书籍', '#视频资源', '#学习资料', '#考试题库',
+        '#课件分享', '#软件工具', '#学习笔记', '#实验资料'
+      ],
+      '竞赛交流': [
+        '#数学建模', '#程序设计', '#创新创业', '#学科竞赛',
+        '#挑战杯', '#创青春', '#互联网+'
+      ],
+      '校园生活': [
+        '#美食推荐', '#社团活动', '#校园风景', '#运动健身',
+        '#宿舍生活', '#校园趣事', '#学生会', '#文艺活动'
+      ],
+      '校园杂谈': [
+        '#校园新闻', '#活动通知', '#失物招领', '#二手交易',
+        '#闲聊灌水', '#情感交流', '#校园趣闻'
+      ],
+      '技术交流': [
+        '#编程开发', '#人工智能', '#网络技术', '#硬件维修',
+        '#数据分析', '#云计算', '#区块链', '#物联网'
+      ],
+      '表白墙': [
+        '#表白专区', '#脱单攻略', '#情感故事', '#暗恋专栏',
+        '#恋爱相談', '#心动瞬间'
+      ],
+      '就业兼职': [
+        '#实习信息', '#校招信息', '#求职经验', '#简历指导',
+        '#面试技巧', '#职业规划', '#兼职信息'
+      ]
+    };
+    return tagMap[topicName] || [];
+  };
+  
   // 当选中标签变化时，重新获取帖子
   useEffect(() => {
     async function fetchPostsByTag() {
@@ -128,7 +222,7 @@ export default function TopicDetail() {
         setLoading(true);
         const tagText = selectedTag.replace('#', '');
         // 使用API获取特定标签的帖子
-        const data = await postsAPI.getPosts(null, topic, tagText);
+        const data = await postsAPI.getPosts(undefined, topic, tagText);
         setFilteredPosts(data || []);
       } catch (err) {
         console.error('Error fetching posts by tag:', err);
@@ -229,7 +323,17 @@ export default function TopicDetail() {
                     <span className="text-xs">找到 {filteredPosts.length} 个结果</span>
                   </div>
                 )}
-                <PostList posts={filteredPosts} />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 140px)' }}>  
+                  {filteredPosts.map(post => {
+                    // 确保每个帖子都有必要的属性
+                    const postWithDefaults = {
+                      ...post,
+                      avatar: post.avatar || '/placeholder.svg?height=40&width=40',
+                      postType: 'forum'
+                    };
+                    return <Post key={post.id} {...postWithDefaults} />;
+                  })}
+                </div>
               </>
             )}
           </div>
