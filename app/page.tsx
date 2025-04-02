@@ -56,7 +56,7 @@ export default function Home() {
         <div className="w-full flex flex-col">
           <SearchBar onSearch={handleSearch} />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-4 overflow-y-auto bg-white dark:bg-gray-800 bg-opacity-80 dark:bg-opacity-80 rounded-lg p-4" style={{ maxHeight: 'calc(100vh - 140px)' }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-4 overflow-y-auto bg-white dark:bg-gray-800 bg-opacity-40 dark:bg-opacity-50 rounded-lg p-4 " style={{ maxHeight: 'calc(100vh - 140px)' }}>
             {loading ? (
               <div className="col-span-4 text-center py-10">加载中...</div>
             ) : posts.length > 0 ? (
