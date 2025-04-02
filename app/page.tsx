@@ -34,8 +34,10 @@ export default function Home() {
     try {
       setLoading(true)
       const data = await postsAPI.getPosts(query)
+      // 过滤掉失物招领的帖子，只保留论坛帖子
+      const forumPosts = data.filter(post => !post.isLostAndFound)
       // 为每个帖子添加头像和postType
-      const postsWithAvatars = data.map(post => ({
+      const postsWithAvatars = forumPosts.map(post => ({
         ...post,
         avatar: '/placeholder.svg?height=40&width=40',
         postType: 'forum'
