@@ -1,9 +1,11 @@
 interface TopicContentProps {
   topic: string;
   color: string;
+  onTagClick?: (tag: string) => void;
+  selectedTag?: string | null;
 }
 
-export default function TopicContent({ topic, color }: TopicContentProps) {
+export default function TopicContent({ topic, color, onTagClick, selectedTag }: TopicContentProps) {
   const adjustColor = (color: string) => {
     color = color.trim();
     
@@ -85,38 +87,52 @@ export default function TopicContent({ topic, color }: TopicContentProps) {
         {topic}
       </div>
       <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-        {getTopicTags(topic).map((tag) => (
-          <span 
-            key={tag}
-            onClick={() => {
-              console.log(`Clicked ${tag}`);
-            }}
-            className="relative text-sm transition-all cursor-pointer
-                     hover:scale-105 hover:font-semibold
-                     active:scale-95 duration-150
-                     flex items-center gap-1"
-            style={{ 
-              color: adjustColor(color),
-              '--hover-glow': color,
-            } as React.CSSProperties}
-          >
-            <span className="relative z-10">{tag}</span>
-            <svg 
-              className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-all duration-300 
-                         transform group-hover:translate-x-1" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
+        {getTopicTags(topic).map((tag) => {
+          const isSelected = selectedTag === tag;
+          return (
+            <span 
+              key={tag}
+              onClick={() => {
+                if (onTagClick) {
+                  onTagClick(tag);
+                } else {
+                  // 如果没有提供onTagClick回调，则直接导航到主题详情页
+                  const tagText = tag.replace('#', '');
+                  window.location.href = `/topic-block/${encodeURIComponent(topic)}?tag=${encodeURIComponent(tagText)}`;
+                }
+              }}
+              className={`relative text-sm transition-all cursor-pointer
+                       hover:scale-105 hover:font-semibold
+                       active:scale-95 duration-150
+                       flex items-center gap-1 group
+                       ${isSelected ? 'font-bold scale-105' : ''}`}
+              style={{ 
+                color: adjustColor(color),
+                '--hover-glow': color,
+                backgroundColor: isSelected ? `${adjustColor(color)}20` : 'transparent',
+                padding: isSelected ? '2px 8px' : '2px 0',
+                borderRadius: isSelected ? '9999px' : '0',
+              } as React.CSSProperties}
             >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M9 5l7 7-7 7" 
-              />
-            </svg>
-          </span>
-        ))}
+              <span className="relative z-10">{tag}</span>
+              <svg 
+                className={`w-3 h-3 transition-all duration-300 
+                           transform group-hover:translate-x-1 
+                           ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M9 5l7 7-7 7" 
+                />
+              </svg>
+            </span>
+          );
+        })}
       </div>
     </>
   );

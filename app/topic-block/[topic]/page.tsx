@@ -1,12 +1,13 @@
 'use client'
 
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import Sidebar from '../../components/Sidebar'
 import PostList from '../../components/PostList'
+import TopicContent from '../../components/TopicContent'
 import { useState, useEffect } from 'react'
 import { postsAPI } from '@/lib/api'
 import Link from 'next/link'
-import { ArrowLeft, PlusCircle } from 'lucide-react'
+import { ArrowLeft, Filter } from 'lucide-react'
 
 // 主题颜色配置表
 const TOPIC_COLORS: Record<string, { border: string; glow: string; bg: string; text: string }> = {
@@ -62,10 +63,23 @@ const TOPIC_COLORS: Record<string, { border: string; glow: string; bg: string; t
 
 export default function TopicDetail() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const topic = decodeURIComponent(params.topic as string);
   const [posts, setPosts] = useState([]);
+  const [filteredPosts, setFilteredPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [showTagFilter, setShowTagFilter] = useState(false);
+  
+  // 从URL查询参数中获取标签
+  useEffect(() => {
+    const tagParam = searchParams.get('tag');
+    if (tagParam) {
+      setSelectedTag(`#${tagParam}`);
+      setShowTagFilter(true);
+    }
+  }, [searchParams]);
 
   const topicColor = TOPIC_COLORS[topic] || { 
     border: '#8A2BE2', 
@@ -74,16 +88,26 @@ export default function TopicDetail() {
     text: 'text-indigo-800 dark:text-indigo-300'
   };
 
+  // 根据选中的标签筛选帖子
+  useEffect(() => {
+    if (selectedTag) {
+      const filtered = posts.filter((post: any) => 
+        post.tags?.some((tag: string) => tag.includes(selectedTag.replace('#', '')))
+      );
+      setFilteredPosts(filtered);
+    } else {
+      setFilteredPosts(posts);
+    }
+  }, [selectedTag, posts]);
+
+  // 获取帖子数据
   useEffect(() => {
     async function fetchPosts() {
       try {
-        // 在实际应用中，这里应该调用获取特定主题帖子的API
-        const data = await postsAPI.getPosts();
-        // 假设我们过滤出与当前主题相关的帖子
-        const filteredPosts = data.filter((post: any) => 
-          post.category === topic || post.tags?.includes(topic)
-        );
-        setPosts(filteredPosts || []);
+        setLoading(true);
+        // 直接使用API获取特定主题的帖子
+        const data = await postsAPI.getPosts(null, topic);
+        setPosts(data || []);
       } catch (err) {
         console.error('Error fetching posts:', err);
         setError('无法加载帖子，请稍后再试');
@@ -94,46 +118,123 @@ export default function TopicDetail() {
 
     fetchPosts();
   }, [topic]);
+  
+  // 当选中标签变化时，重新获取帖子
+  useEffect(() => {
+    async function fetchPostsByTag() {
+      if (!selectedTag) return;
+      
+      try {
+        setLoading(true);
+        const tagText = selectedTag.replace('#', '');
+        // 使用API获取特定标签的帖子
+        const data = await postsAPI.getPosts(null, topic, tagText);
+        setFilteredPosts(data || []);
+      } catch (err) {
+        console.error('Error fetching posts by tag:', err);
+        setError('无法加载标签相关帖子，请稍后再试');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (selectedTag) {
+      fetchPostsByTag();
+    } else {
+      setFilteredPosts(posts);
+    }
+  }, [selectedTag, topic]);
+
+  // 处理标签点击事件
+  const handleTagClick = (tag: string) => {
+    if (selectedTag === tag) {
+      setSelectedTag(null); // 取消选中
+    } else {
+      setSelectedTag(tag); // 选中新标签
+    }
+  };
 
   return (
     <div className="flex h-screen">
       <Sidebar />
       
-      <main className={`flex-1 p-8 overflow-y-auto ${topicColor.bg}`}>
+      <main className={`flex-1 p-8 overflow-y-auto bg-gradient-to-br from-white to-blue-50 dark:from-gray-900 dark:to-indigo-950 bg-opacity-80 dark:bg-opacity-80 backdrop-blur-sm`}>
         <div className="max-w-4xl mx-auto">
           {/* 标题区域 */}
-          <div className="mb-8 flex items-center justify-between">
+          <div className="mb-4 flex items-center justify-between bg-white dark:bg-gray-800 bg-opacity-80 dark:bg-opacity-80 backdrop-blur-sm p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="flex items-center">
-              <Link href="/topic-block" className="mr-4">
-                <ArrowLeft className="w-5 h-5" />
+              <Link href="/topic-block" className="mr-4 hover:scale-110 transition-transform">
+                <ArrowLeft className="w-5 h-5 text-gray-700 dark:text-gray-300" />
               </Link>
               <h1 className={`text-3xl font-bold ${topicColor.text}`} style={{ borderColor: topicColor.border }}>
                 {topic}
               </h1>
             </div>
-            <Link href={`/create-post?topic=${encodeURIComponent(topic)}`} className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-md transition-shadow">
-              <PlusCircle className="w-4 h-4" />
-              <span>发布内容</span>
-            </Link>
+            <button 
+              onClick={() => setShowTagFilter(!showTagFilter)}
+              className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 bg-opacity-90 dark:bg-opacity-90 rounded-lg shadow hover:shadow-md transition-all hover:-translate-y-1 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200"
+            >
+              <Filter className="w-4 h-4" />
+              <span>筛选标签</span>
+            </button>
           </div>
           
-          {/* 帖子列表 */}
-          {loading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          {/* 标签筛选区域 */}
+          {showTagFilter && (
+            <div className="mb-4 bg-white dark:bg-gray-800 bg-opacity-80 dark:bg-opacity-80 backdrop-blur-sm rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+              <div className="mb-2 text-sm text-gray-600 dark:text-gray-400 flex items-center justify-between">
+                <span>选择标签进行筛选</span>
+                {selectedTag && (
+                  <button 
+                    onClick={() => setSelectedTag(null)}
+                    className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                  >
+                    清除筛选
+                  </button>
+                )}
+              </div>
+              <div className="relative">
+                <TopicContent 
+                  topic={topic} 
+                  color={topicColor.border} 
+                  onTagClick={handleTagClick}
+                  selectedTag={selectedTag}
+                />
+              </div>
             </div>
-          ) : error ? (
-            <div className="text-center text-red-500 p-8">{error}</div>
-          ) : posts.length === 0 ? (
-            <div className="text-center p-16">
-              <p className="text-lg mb-4">这个主题还没有任何帖子</p>
-              <p>来发布第一条内容吧！</p>
-            </div>
-          ) : (
-            <PostList posts={posts} />
           )}
+          
+          {/* 帖子列表 */}
+          <div className="bg-white dark:bg-gray-800 bg-opacity-80 dark:bg-opacity-80 backdrop-blur-sm rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-6">
+            {loading ? (
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+              </div>
+            ) : error ? (
+              <div className="text-center text-red-500 p-8 bg-red-50 dark:bg-red-900/30 rounded-lg">{error}</div>
+            ) : filteredPosts.length === 0 ? (
+              <div className="text-center p-16 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-dashed border-gray-300 dark:border-gray-700">
+                <p className="text-lg mb-4 text-gray-700 dark:text-gray-300">
+                  {selectedTag ? `没有包含标签 ${selectedTag} 的帖子` : "这个主题还没有任何帖子"}
+                </p>
+                <p className="text-gray-500 dark:text-gray-400">
+                  {selectedTag ? "尝试选择其他标签" : "敬请期待！"}
+                </p>
+              </div>
+            ) : (
+              <>
+                {selectedTag && (
+                  <div className="mb-4 p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-sm text-blue-800 dark:text-blue-300 flex items-center justify-between">
+                    <span>当前筛选: {selectedTag}</span>
+                    <span className="text-xs">找到 {filteredPosts.length} 个结果</span>
+                  </div>
+                )}
+                <PostList posts={filteredPosts} />
+              </>
+            )}
+          </div>
         </div>
       </main>
     </div>
   );
-} 
+}

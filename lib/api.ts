@@ -169,8 +169,26 @@ export const messagesAPI = {
  */
 export const postsAPI = {
   // 获取帖子列表
-  getPosts: async (search?: string) => {
-    const queryParams = search ? `?search=${encodeURIComponent(search)}` : '';
+  getPosts: async (search?: string, category?: string, tag?: string) => {
+    let queryParams = '';
+    const params = [];
+    
+    if (search) {
+      params.push(`search=${encodeURIComponent(search)}`);
+    }
+    
+    if (category) {
+      params.push(`category=${encodeURIComponent(category)}`);
+    }
+    
+    if (tag) {
+      params.push(`tag=${encodeURIComponent(tag)}`);
+    }
+    
+    if (params.length > 0) {
+      queryParams = `?${params.join('&')}`;
+    }
+    
     return fetchAPI(`/api/posts${queryParams}`);
   },
   
@@ -197,6 +215,25 @@ export const postsAPI = {
     return fetchAPI(`/api/posts/${postId}/comments`, {
       method: 'POST',
       body: JSON.stringify({ content }),
+    });
+  },
+
+  // 点赞/取消点赞帖子
+  likePost: async (postId: string) => {
+    return fetchAPI(`/api/posts/${postId}/like`, {
+      method: 'POST',
+    });
+  },
+
+  // 检查用户是否点赞过帖子
+  checkLiked: async (postId: string) => {
+    return fetchAPI(`/api/posts/${postId}/liked`);
+  },
+
+  // 分享帖子
+  sharePost: async (postId: string) => {
+    return fetchAPI(`/api/posts/${postId}/share`, {
+      method: 'POST',
     });
   },
 };
@@ -241,6 +278,13 @@ export const lostAndFoundAPI = {
   markAsReturned: async (itemId: string) => {
     return fetchAPI(`/api/lost-and-found/${itemId}/return`, {
       method: 'PUT',
+    });
+  },
+
+  // 分享失物招领
+  sharePost: async (itemId: string) => {
+    return fetchAPI(`/api/lost-and-found/${itemId}/share`, {
+      method: 'POST',
     });
   },
 };
