@@ -43,7 +43,8 @@ export default function ChatWindow({ chatId, title, showUserInfo = true, isComme
   const [isTyping, setIsTyping] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [chatPartner, setChatPartner] = useState({ name: '加载中...', avatar: '/images/lon.jpg' })
+  const [partnerName, setPartnerName] = useState('');
+  const [partnerAvatar, setPartnerAvatar] = useState('/images/lon.jpg');
   const [imageUploading, setImageUploading] = useState(false)
   const [pastedImage, setPastedImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
@@ -55,40 +56,50 @@ export default function ChatWindow({ chatId, title, showUserInfo = true, isComme
       
       try {
         setLoading(true);
+        console.log('Fetching messages for:', chatId, isComment ? '(comment mode)' : '(chat mode)');
+        
         const data = await messagesAPI.getMessages(chatId);
-        console.log('Fetched messages data:', data);
+        console.log('Received data:', data);
 
-        if (!data) {
-          throw new Error('Invalid message data');
+        if (!data?.messages) {
+          throw new Error('No messages data received');
         }
 
         // 统一处理消息格式
         const formattedMessages = data.messages.map((msg: any) => ({
-          id: msg.id.toString(),
+          id: msg.id,
           content: msg.content,
           type: msg.type || 'text',
-          sender: msg.sender,  // 直接使用API返回的sender值
-          timestamp: msg.timestamp || msg.created_at || new Date().toLocaleString()
+          sender: msg.sender,
+          timestamp: msg.timestamp || msg.created_at,
+          userId: msg.userId,
+          username: msg.username
         }));
 
+        console.log('Formatted messages:', formattedMessages);
         setMessages(formattedMessages);
-        
-        // 处理私聊对象信息
-        if (!isComment && data.partnerInfo) {
-          setChatPartner({
-            name: data.partnerInfo.name || '未知用户',
-            avatar: data.partnerInfo.avatar || '/images/lon.jpg'
-          });
+
+        // 设置对话信息
+        if (!isComment && data.partnerName) {
+          setPartnerName(data.partnerName);
+          setPartnerAvatar(data.partnerAvatar || '/images/lon.jpg');
         }
       } catch (err) {
-        console.error('获取消息失败:', err);
+        console.error('Error fetching messages:', err);
         setError('加载失败');
       } finally {
         setLoading(false);
       }
     }
 
+    // 首次加载
     fetchMessages();
+
+    // 设置定期刷新
+    if (isComment) {
+      const interval = setInterval(fetchMessages, 5000); // 每5秒刷新一次评论
+      return () => clearInterval(interval);
+    }
   }, [chatId, isComment]);
 
   const handleSendMessage = async () => {
@@ -258,16 +269,16 @@ export default function ChatWindow({ chatId, title, showUserInfo = true, isComme
                   <>
                     <Avatar className="h-7 w-7 mr-3">
                       <AvatarImage 
-                        src={chatPartner?.avatar || "/images/lon.jpg"} 
-                        alt={chatPartner?.name || "未知用户"} 
+                        src={partnerAvatar} 
+                        alt={partnerName} 
                         onError={(e) => {
                           (e.currentTarget as HTMLImageElement).src = '/images/lon.jpg';
                           e.currentTarget.onerror = null;
                         }} 
                       />
-                      <AvatarFallback>{chatPartner?.name?.[0] || "?"}</AvatarFallback>
+                      <AvatarFallback>{partnerName?.[0] || "?"}</AvatarFallback>
                     </Avatar>
-                    <h2 className="font-medium text-gray-800 dark:text-gray-200">{chatPartner?.name || '加载中...'}</h2>
+                    <h2 className="font-medium text-gray-800 dark:text-gray-200">{partnerName || '加载中...'}</h2>
                   </>
                 ) : (
                   <h2 className="font-medium text-gray-800 dark:text-gray-200">{title || '评论区'}</h2>

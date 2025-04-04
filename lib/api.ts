@@ -118,72 +118,101 @@ export const messagesAPI = {
   },
   
   getMessages: async (chatId: string) => {
-    console.log('Fetching messages for chat:', chatId);
     const currentUserId = localStorage.getItem('userId');
 
-    // 处理评论消息
     if (chatId.startsWith('post-')) {
       const postId = chatId.replace('post-', '');
-      const comments = await fetchAPI(`/api/posts/${postId}/comments`);
-      
-      return {
-        messages: comments.map((comment: any) => ({
-          id: comment.id.toString(),
-          content: comment.content,
-          type: comment.type || 'text',
-          senderId: comment.userId,  // 保持原始userId
-          userId: comment.userId,    // 保持原始userId
-          sender: comment.userId === currentUserId ? 'user' : 'other'  // 根据userId判断发送者
-        }))
-      };
+      try {
+        // 从数据库获取该帖子的所有评论
+        const comments = await fetchAPI(`/api/posts/${postId}/comments`);
+        console.log('Fetched post comments:', comments);
+
+        // 确保评论数据格式正确
+        return {
+          messages: comments.map((comment: any) => ({
+            id: String(comment.id),
+            content: comment.content || '',
+            type: comment.type || 'text',
+            sender: comment.userId === currentUserId ? 'user' : 'other',
+            userId: comment.userId,
+            timestamp: comment.created_at || new Date().toISOString(),
+            username: comment.username || 'Unknown User',
+            commentId: comment.id,
+            postId: postId
+          })),
+          postInfo: {
+            id: postId
+          }
+        };
+      } catch (error) {
+        console.error('Failed to fetch comments:', error);
+        throw error;
+      }
     }
 
-    // 处理私聊消息，保持原有逻辑
+    // 私聊消息
     const response = await fetchAPI(`/api/messages/${chatId}`);
     return {
-      messages: (response.messages || []).map((msg: any) => ({
-        ...msg,
-        sender: msg.senderId === currentUserId ? 'user' : 'other'
+      messages: response.messages.map((msg: any) => ({
+        id: String(msg.id),
+        content: msg.content,
+        type: msg.type || 'text',
+        sender: msg.senderId === currentUserId ? 'user' : 'other',
+        timestamp: msg.timestamp,
+        username: msg.senderName // 发送者名字
       })),
-      partnerInfo: response.partnerInfo
+      partnerName: response.partnerName, // 对话者名字
+      partnerAvatar: response.partnerAvatar
     };
   },
   
   sendMessage: async (chatId: string, content: string, type: 'text' | 'image' = 'text') => {
     const currentUserId = localStorage.getItem('userId');
 
-    // 处理评论消息
     if (chatId.startsWith('post-')) {
       const postId = chatId.replace('post-', '');
-      const response = await fetchAPI(`/api/posts/${postId}/comments`, {
-        method: 'POST',
-        body: JSON.stringify({
+      try {
+        // 发送评论到数据库
+        const response = await fetchAPI(`/api/posts/${postId}/comments`, {
+          method: 'POST',
+          body: JSON.stringify({
+            content,
+            type,
+            userId: currentUserId,
+            postId: postId,
+            created_at: new Date().toISOString()
+          }),
+        });
+
+        console.log('Comment saved:', response);
+
+        // 确保返回完整的评论数据
+        return {
+          id: String(response.id),
           content,
           type,
-          userId: currentUserId
-        }),
-      });
-
-      return {
-        id: response.id,
-        content,
-        type,
-        userId: currentUserId,
-        senderId: currentUserId,
-        sender: 'user'  // 发送时一定是当前用户
-      };
+          sender: 'user',
+          userId: currentUserId,
+          created_at: response.created_at || new Date().toISOString(),
+          postId: postId,
+          commentId: response.id
+        };
+      } catch (error) {
+        console.error('Error saving comment:', error);
+        throw error;
+      }
     }
 
-    // 处理私聊消息，保持原有逻辑
-    return fetchAPI('/api/messages', {
+    // 私聊消息
+    const response = await fetchAPI('/api/messages', {
       method: 'POST',
-      body: JSON.stringify({ 
-        receiverId: chatId, 
-        content, 
-        type,
-        senderId: currentUserId
-      }),
+      body: JSON.stringify({ receiverId: chatId, content, type }),
     });
+
+    return {
+      ...response,
+      sender: 'user'
+    };
   },
 
   uploadImage: async (chatId: string, formData: FormData) => {
@@ -217,18 +246,39 @@ export const messagesAPI = {
     });
   },
 
-  // 修改评论发送方法
-  sendComment: async (postId: string, content: string) => {
+  sendComment: async (postId: string, content: string, type: 'text' | 'image' = 'text') => {
     const cleanPostId = postId.replace('post-', '');
-    const response = await fetchAPI(`/api/posts/${cleanPostId}/comments`, {
-      method: 'POST',
-      body: JSON.stringify({ content }),
-    });
+    const currentUserId = localStorage.getItem('userId');
 
-    return response;
+    try {
+      // 发送评论并保存到数据库
+      const comment = await fetchAPI(`/api/posts/${cleanPostId}/comments`, {
+        method: 'POST',
+        body: JSON.stringify({
+          content,
+          type,
+          userId: currentUserId,
+          created_at: new Date().toISOString()
+        })
+      });
+
+      // 返回统一格式的评论数据
+      return {
+        id: String(comment.id),
+        content,
+        type,
+        sender: 'user',
+        userId: currentUserId,
+        timestamp: comment.created_at || new Date().toISOString(),
+        commentId: comment.id,
+        postId: cleanPostId
+      };
+    } catch (error) {
+      console.error('Failed to save comment:', error);
+      throw error;
+    }
   },
 
-  // 修改评论获取方法
   getComments: async (postId: string) => {
     try {
       const cleanPostId = postId.replace('post-', '');
