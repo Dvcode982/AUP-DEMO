@@ -97,7 +97,7 @@ export default function TopicBlock() {
   ];
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-white to-blue-50 dark:from-gray-900 dark:to-indigo-950 bg-opacity-80 dark:bg-opacity-80 backdrop-blur-sm">
+    <div className="flex h-screen bg-opacity-80 dark:bg-opacity-80 ">
       <Sidebar />
       
       <main className="flex-1 flex flex-col p-4">
@@ -114,7 +114,7 @@ export default function TopicBlock() {
         </div>
 
         {/* 主题卡片区 */}
-        <div className="relative h-full border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden bg-white dark:bg-gray-800 bg-opacity-80 dark:bg-opacity-80 backdrop-blur-sm shadow-md flex-grow">
+        <div className="relative h-full border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden bg-white dark:bg-gray-800 bg-opacity-80 dark:bg-opacity-80 shadow-md flex-grow">
           <div className="absolute top-0 left-0 right-0 h-3 bg-white dark:bg-gray-800 flex items-center px-4 z-20 mt-2 bg-opacity-0 dark:bg-opacity-0">
             <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
             <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
@@ -154,7 +154,7 @@ export default function TopicBlock() {
 
       {/* 标签区 */}
       <div className="relative flex flex-col flex-none basis-80 p-4">
-        <div className="relative flex flex-col h-full border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden bg-white dark:bg-gray-800 bg-opacity-80 dark:bg-opacity-80 backdrop-blur-sm shadow-md">
+        <div className="relative flex flex-col h-full border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden bg-white dark:bg-gray-800 bg-opacity-80 dark:bg-opacity-80 shadow-md">
           <div className="absolute top-0 left-0 right-0 h-3 bg-white dark:bg-gray-800 flex items-center px-4 z-20 mt-2 bg-opacity-0 dark:bg-opacity-0">
             <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
             <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>

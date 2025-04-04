@@ -27,12 +27,17 @@ export default function Messages() {
       <div className="flex h-screen text-foreground">
         <Sidebar />
         <main className="flex-1 p-4 overflow-hidden flex gap-4">
-          <div className=" w-1/3 flex flex-col">
+          <div className="w-1/3 flex flex-col">
             <MessageList onSelectChat={setSelectedChat} />
           </div>
           <div className="flex-1">
             {selectedChat ? (
-              <ChatWindow chatId={selectedChat} />
+              <ChatWindow 
+                chatId={selectedChat} 
+                showUserInfo={true} 
+                isComment={false}
+                isDirectMessage={true} // 添加这个属性来标识是私聊
+              />
             ) : (
               <div className="h-full flex items-center justify-center text-muted-foreground">
                 选择一个聊天或开始新的对话

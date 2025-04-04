@@ -119,16 +119,70 @@ export const messagesAPI = {
   
   getMessages: async (chatId: string) => {
     console.log('Fetching messages for chat:', chatId);
+    const currentUserId = localStorage.getItem('userId');
+
+    // 处理评论消息
+    if (chatId.startsWith('post-')) {
+      const postId = chatId.replace('post-', '');
+      const comments = await fetchAPI(`/api/posts/${postId}/comments`);
+      
+      return {
+        messages: comments.map((comment: any) => ({
+          id: comment.id.toString(),
+          content: comment.content,
+          type: comment.type || 'text',
+          senderId: comment.userId,  // 保持原始userId
+          userId: comment.userId,    // 保持原始userId
+          sender: comment.userId === currentUserId ? 'user' : 'other'  // 根据userId判断发送者
+        }))
+      };
+    }
+
+    // 处理私聊消息，保持原有逻辑
     const response = await fetchAPI(`/api/messages/${chatId}`);
-    console.log('Received messages:', response);
-    return response;
+    return {
+      messages: (response.messages || []).map((msg: any) => ({
+        ...msg,
+        sender: msg.senderId === currentUserId ? 'user' : 'other'
+      })),
+      partnerInfo: response.partnerInfo
+    };
   },
   
-  sendMessage: async (receiverId: string, content: string, type: 'text' | 'image' = 'text') => {
-    console.log('Sending message:', { receiverId, content, type });
+  sendMessage: async (chatId: string, content: string, type: 'text' | 'image' = 'text') => {
+    const currentUserId = localStorage.getItem('userId');
+
+    // 处理评论消息
+    if (chatId.startsWith('post-')) {
+      const postId = chatId.replace('post-', '');
+      const response = await fetchAPI(`/api/posts/${postId}/comments`, {
+        method: 'POST',
+        body: JSON.stringify({
+          content,
+          type,
+          userId: currentUserId
+        }),
+      });
+
+      return {
+        id: response.id,
+        content,
+        type,
+        userId: currentUserId,
+        senderId: currentUserId,
+        sender: 'user'  // 发送时一定是当前用户
+      };
+    }
+
+    // 处理私聊消息，保持原有逻辑
     return fetchAPI('/api/messages', {
       method: 'POST',
-      body: JSON.stringify({ receiverId, content, type }),
+      body: JSON.stringify({ 
+        receiverId: chatId, 
+        content, 
+        type,
+        senderId: currentUserId
+      }),
     });
   },
 
@@ -161,6 +215,31 @@ export const messagesAPI = {
     return fetchAPI(`/api/messages/${messageId}/read`, {
       method: 'POST',
     });
+  },
+
+  // 修改评论发送方法
+  sendComment: async (postId: string, content: string) => {
+    const cleanPostId = postId.replace('post-', '');
+    const response = await fetchAPI(`/api/posts/${cleanPostId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    });
+
+    return response;
+  },
+
+  // 修改评论获取方法
+  getComments: async (postId: string) => {
+    try {
+      const cleanPostId = postId.replace('post-', '');
+      const data = await fetchAPI(`/api/posts/${cleanPostId}/comments`);
+      
+      // 处理评论数据
+      return Array.isArray(data) ? data : [];
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+      return [];
+    }
   },
 };
 
