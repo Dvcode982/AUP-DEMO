@@ -2,7 +2,6 @@
 import Sidebar from './components/Sidebar'
 import Post from './components/Post'
 import SearchBar from './components/SearchBar'
-import FloatingActionButton from './components/FloatingActionButton'
 import ChatWindow from './components/messages/ChatWindow'
 import { useState, useEffect } from 'react'
 import { postsAPI } from '@/lib/api'
@@ -114,7 +113,7 @@ export default function Home() {
           </div>
         )}
 
-        <FloatingActionButton />
+        
       </main>
     </div>
   )
