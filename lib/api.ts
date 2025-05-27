@@ -116,6 +116,26 @@ export const usersAPI = {
   searchUserByEmail: async (email: string) => {
     return fetchAPI(`/api/users/search?email=${encodeURIComponent(email)}`);
   },
+  
+  // 获取当前用户完整资料
+  getCurrentUserProfile: async () => {
+    return fetchAPI('/api/user/profile');
+  },
+  
+  // 更新当前用户资料
+  updateUserProfile: async (profileData: {
+    username?: string;
+    bio?: string;
+    department?: string;
+    grade?: string;
+    role?: string;
+    avatar?: string;
+  }) => {
+    return fetchAPI('/api/user/profile', {
+      method: 'PUT',
+      body: JSON.stringify(profileData),
+    });
+  },
 };
 
 /**

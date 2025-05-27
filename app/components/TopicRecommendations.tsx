@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { topicAggregationAPI } from '@/lib/api'
 import { useAuth } from '../contexts/AuthContext'
 import Link from 'next/link'
-import { TrendingUp, Tag } from 'lucide-react'
+import { TrendingUp, Tag, Sparkles } from 'lucide-react'
 
 interface TopicRecommendation {
   topic: string
@@ -49,12 +49,12 @@ export default function TopicRecommendations() {
 
   if (!isAuthenticated) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-blue-500" />
+      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-3 shadow-sm border border-gray-100 dark:border-gray-700">
+        <h3 className="text-sm font-semibold mb-2 flex items-center gap-1.5">
+          <Sparkles className="w-4 h-4 text-blue-500" />
           为您推荐
         </h3>
-        <p className="text-gray-500 dark:text-gray-400 text-sm">
+        <p className="text-gray-500 dark:text-gray-400 text-xs">
           登录后查看个性化推荐
         </p>
       </div>
@@ -63,12 +63,12 @@ export default function TopicRecommendations() {
 
   if (loading) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-3 shadow-sm border border-gray-100 dark:border-gray-700">
         <div className="animate-pulse">
-          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-32 mb-4"></div>
-          <div className="space-y-3">
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24 mb-3"></div>
+          <div className="space-y-2">
+            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
           </div>
         </div>
       </div>
@@ -77,8 +77,8 @@ export default function TopicRecommendations() {
 
   if (error) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-        <p className="text-red-500 text-sm">{error}</p>
+      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-3 shadow-sm border border-gray-100 dark:border-gray-700">
+        <p className="text-red-500 text-xs">{error}</p>
       </div>
     )
   }
@@ -99,38 +99,38 @@ export default function TopicRecommendations() {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-      <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-        <TrendingUp className="w-5 h-5 text-blue-500" />
+    <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-3 shadow-sm border border-gray-100 dark:border-gray-700">
+      <h3 className="text-sm font-semibold mb-3 flex items-center gap-1.5">
+        <Sparkles className="w-4 h-4 text-blue-500" />
         为您推荐
       </h3>
 
       {/* 推荐主题 */}
       {recommendations.length > 0 && (
-        <div className="mb-6">
-          <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">推荐主题</h4>
-          <div className="space-y-3">
+        <div className="mb-3">
+          <h4 className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">推荐主题</h4>
+          <div className="space-y-2">
             {recommendations.slice(0, 3).map((rec) => (
               <Link
                 key={rec.topic}
                 href={`/topic-block/${encodeURIComponent(rec.topic)}`}
                 className="block"
               >
-                <div className="p-3 rounded-lg border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all hover:-translate-y-0.5">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getTopicColor(rec.topic)}`}>
+                <div className="p-2 rounded-lg bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all group">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getTopicColor(rec.topic)}`}>
                       {rec.topic}
                     </span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                      热度 {Math.round(rec.score)}
+                    <span className="text-xs text-gray-400 dark:text-gray-500">
+                      {Math.round(rec.score)}°
                     </span>
                   </div>
                   {rec.relatedTags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {rec.relatedTags.slice(0, 5).map((tag) => (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {rec.relatedTags.slice(0, 3).map((tag) => (
                         <span
                           key={tag.tag}
-                          className="text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full"
+                          className="text-xs px-1.5 py-0.5 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded"
                         >
                           #{tag.tag}
                         </span>
@@ -147,21 +147,18 @@ export default function TopicRecommendations() {
       {/* 热门标签 */}
       {topTags.length > 0 && (
         <div>
-          <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-1">
-            <Tag className="w-4 h-4" />
+          <h4 className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2 flex items-center gap-1">
+            <Tag className="w-3 h-3" />
             热门标签
           </h4>
-          <div className="flex flex-wrap gap-2">
-            {topTags.slice(0, 10).map((tag) => (
+          <div className="flex flex-wrap gap-1">
+            {topTags.slice(0, 8).map((tag) => (
               <Link
                 key={tag.tag}
                 href={`/search?tag=${encodeURIComponent(tag.tag)}`}
-                className="inline-flex items-center px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full text-xs font-medium hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+                className="inline-flex items-center px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full text-xs hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
               >
                 #{tag.tag}
-                <span className="ml-1 text-blue-400 dark:text-blue-500">
-                  {Math.round(tag.score)}
-                </span>
               </Link>
             ))}
           </div>
@@ -169,7 +166,7 @@ export default function TopicRecommendations() {
       )}
 
       {recommendations.length === 0 && topTags.length === 0 && (
-        <p className="text-gray-500 dark:text-gray-400 text-sm">
+        <p className="text-gray-500 dark:text-gray-400 text-xs">
           继续浏览和互动，我们将为您推荐感兴趣的内容
         </p>
       )}

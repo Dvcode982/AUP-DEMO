@@ -6,11 +6,17 @@ module.exports = (app, db, authenticateToken) => {
     const query = `
       SELECT 
         c.id,
-        u.email as author,
+        c.author_id,
+        u.email as author_email,
+        COALESCE(up.username, '用户' || SUBSTR(u.id, 1, 4)) as author,
+        up.avatar as avatar,
+        up.role as author_role,
+        up.department as author_department,
         c.content,
         c.created_at as time
       FROM comments c
       JOIN users u ON c.author_id = u.id
+      LEFT JOIN user_profiles up ON u.id = up.user_id
       WHERE c.post_id = ?
       ORDER BY c.created_at ASC
     `;
