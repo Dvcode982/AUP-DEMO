@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Smile, ImageIcon, Mic, Send, FileText, Paperclip, Sticker, X } from 'lucide-react'
 import EmojiPicker from '../create-post/EmojiPicker'
 import { useTheme } from 'next-themes'
-import { messagesAPI } from '@/lib/api'
+import { messagesAPI  } from '@/lib/api'  // 修改为正确的路径
 import toast from 'react-hot-toast'
 import { EmojiButton } from './EmojiButton'
 import Image from 'next/image'
@@ -17,7 +17,7 @@ interface Message {
   id: string
   sender: 'user' | 'other'
   content: string
-  type?: 'text' | 'image'
+  type?: 'text' | 'image'  // 添加消息类型
   timestamp: string
   isRead?: boolean
   imageData?: {
@@ -29,13 +29,13 @@ interface Message {
 
 interface ChatWindowProps {
   chatId: string
-  title?: string
-  showUserInfo?: boolean
-  isComment?: boolean
 }
 
-export default function ChatWindow({ chatId, title, showUserInfo = true, isComment = false }: ChatWindowProps) {
-  const [messages, setMessages] = useState<Message[]>([])
+// 初始状态为空数组，将通过API获取真实消息
+const initialMessages: Message[] = []
+
+export default function ChatWindow({ chatId }: ChatWindowProps) {
+  const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [newMessage, setNewMessage] = useState('')
   const [isRecording, setIsRecording] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -43,64 +43,73 @@ export default function ChatWindow({ chatId, title, showUserInfo = true, isComme
   const [isTyping, setIsTyping] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [partnerName, setPartnerName] = useState('');
-  const [partnerAvatar, setPartnerAvatar] = useState('/images/lon.jpg');
-  const [imageUploading, setImageUploading] = useState(false)
-  const [pastedImage, setPastedImage] = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
-  const [selectedImage, setSelectedImage] = useState<string | null>(null)
+  const [chatPartner, setChatPartner] = useState({ name: '加载中...', avatar: '/images/lon.jpg' })
+  const [imageUploading, setImageUploading] = useState(false);
+  const [pastedImage, setPastedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
+  // 获取聊天历史
   useEffect(() => {
     async function fetchMessages() {
       if (!chatId) return;
       
       try {
         setLoading(true);
-        console.log('Fetching messages for:', chatId, isComment ? '(comment mode)' : '(chat mode)');
-        
         const data = await messagesAPI.getMessages(chatId);
-        console.log('Received data:', data);
+        console.log('Received messages data:', data);
 
-        if (!data?.messages) {
-          throw new Error('No messages data received');
+        if (!data) {
+          throw new Error('Failed to fetch messages');
         }
 
-        // 统一处理消息格式
-        const formattedMessages = data.messages.map((msg: any) => ({
-          id: msg.id,
-          content: msg.content,
-          type: msg.type || 'text',
-          sender: msg.sender,
-          timestamp: msg.timestamp || msg.created_at,
-          userId: msg.userId,
-          username: msg.username
-        }));
+        const formattedMessages = (data.messages || []).map((msg: any) => {
+          let timestamp;
+          try {
+            // 使用服务器返回的时间戳，而不是创建新的 Date 对象
+            timestamp = msg.timestamp || msg.created_at;
+          } catch (err) {
+            console.error('Error formatting timestamp:', err);
+            timestamp = '未知时间';
+          }
 
-        console.log('Formatted messages:', formattedMessages);
+          return {
+            id: msg.id.toString(),
+            sender: msg.sender,
+            content: msg.content,
+            type: msg.type || 'text',
+            timestamp
+          };
+        });
+
         setMessages(formattedMessages);
-
-        // 设置对话信息
-        if (!isComment && data.partnerName) {
-          setPartnerName(data.partnerName);
-          setPartnerAvatar(data.partnerAvatar || '/images/lon.jpg');
+        
+        if (data.partnerName) {
+          setChatPartner({
+            name: data.partnerName,
+            avatar: data.partnerAvatar || '/images/lon.jpg'
+          });
         }
       } catch (err) {
-        console.error('Error fetching messages:', err);
-        setError('加载失败');
+        console.error('获取聊天历史失败:', err);
+        setError('无法加载聊天历史');
       } finally {
         setLoading(false);
+        scrollToBottom();
       }
     }
 
-    // 首次加载
     fetchMessages();
+  }, [chatId]);
+  
+  // 消息变化时滚动到底部
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages])
 
-    // 设置定期刷新
-    if (isComment) {
-      const interval = setInterval(fetchMessages, 5000); // 每5秒刷新一次评论
-      return () => clearInterval(interval);
-    }
-  }, [chatId, isComment]);
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
 
   const handleSendMessage = async () => {
     const hasImage = pastedImage && imagePreview;
@@ -109,74 +118,92 @@ export default function ChatWindow({ chatId, title, showUserInfo = true, isComme
     if (!hasImage && !hasText) return;
 
     try {
+      // 保存当前输入内容
       const currentMessage = newMessage;
       const currentImage = pastedImage;
       const currentPreview = imagePreview;
 
+      // 清空输入
       setNewMessage('');
       clearPastedImage();
 
+      // 处理图片消息
       if (hasImage && currentImage) {
         const tempId = `temp-${Date.now()}`;
-        const tempMessage = {
-          id: tempId,
-          sender: 'user',
-          content: currentPreview || '',
-          type: 'image',
-          timestamp: new Date().toLocaleString()
-        };
-
-        setMessages(prev => [...prev, tempMessage]);
-
+        
         try {
+          // 添加临时预览
+          setMessages(prev => [...prev, {
+            id: tempId,
+            sender: 'user',
+            content: currentPreview || '',
+            type: 'image',
+            timestamp: new Date().toLocaleTimeString([], { 
+              hour: '2-digit', 
+              minute: '2-digit',
+              hour12: false 
+            })
+          }]);
+
+          console.log('Preparing to upload image...');
           const formData = new FormData();
           formData.append('image', currentImage);
+
+          // 使用 uploadImage 作为 messagesAPI 的方法
           const uploadResult = await messagesAPI.uploadImage(chatId, formData);
 
-          const sendFunction = isComment ? messagesAPI.sendComment : messagesAPI.sendMessage;
-          const response = await sendFunction(chatId, uploadResult.url, 'image');
+          // 发送图片消息
+          const sendResponse = await messagesAPI.sendMessage(chatId, uploadResult.url, 'image');
+          console.log('Image message sent:', sendResponse);
 
+          // 更新消息列表
           setMessages(prev => prev.map(msg => 
             msg.id === tempId ? {
-              ...msg,
-              id: response.id.toString(),
+              ...sendResponse,
+              type: 'image',
               content: uploadResult.url
             } : msg
           ));
+
         } catch (err) {
-          console.error('图片发送失败:', err);
+          console.error('Failed to send image:', err);
           toast.error('图片发送失败');
           setMessages(prev => prev.filter(msg => msg.id !== tempId));
         }
       }
 
+      // 处理文本消息
       if (hasText) {
-        const tempId = `temp-${Date.now()}-text`;
-        const tempMessage = {
-          id: tempId,
-          content: currentMessage,
-          type: 'text',
-          sender: 'user',
-          timestamp: new Date().toLocaleTimeString()
-        };
-
-        setMessages(prev => [...prev, tempMessage]);
-
+        const tempTextId = `temp-${Date.now()}-text`;
         try {
-          const sendFunction = isComment ? messagesAPI.sendComment : messagesAPI.sendMessage;
-          const response = await sendFunction(chatId, currentMessage, 'text');
+          // 添加临时消息
+          setMessages(prev => [...prev, {
+            id: tempTextId,
+            sender: 'user',
+            content: currentMessage,
+            type: 'text',
+            timestamp: new Date().toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: false
+            })
+          }]);
 
+          // 发送消息
+          const textMessage = await messagesAPI.sendMessage(chatId, currentMessage, 'text');
+          
+          // 更新消息状态
           setMessages(prev => prev.map(msg => 
-            msg.id === tempId ? {
-              ...msg,
-              id: response.id.toString(),
-              sender: 'user'
+            msg.id === tempTextId ? {
+              ...textMessage,
+              type: 'text'
             } : msg
           ));
         } catch (err) {
           console.error('文本发送失败:', err);
           toast.error('发送失败');
-          setMessages(prev => prev.filter(msg => msg.id !== tempId));
+          // 移除临时消息
+          setMessages(prev => prev.filter(msg => msg.id !== tempTextId));
         }
       }
     } catch (err) {
@@ -184,14 +211,6 @@ export default function ChatWindow({ chatId, title, showUserInfo = true, isComme
       toast.error('发送失败');
     }
   };
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -204,6 +223,7 @@ export default function ChatWindow({ chatId, title, showUserInfo = true, isComme
     setNewMessage(prev => prev + emoji);
   };
 
+  // 处理粘贴事件
   const handlePaste = async (e: React.ClipboardEvent) => {
     const items = e.clipboardData?.items;
     const item = items?.[0];
@@ -219,16 +239,21 @@ export default function ChatWindow({ chatId, title, showUserInfo = true, isComme
     }
   };
 
+  // 清除已粘贴的图片
   const clearPastedImage = () => {
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+    }
     setPastedImage(null);
     setImagePreview(null);
   };
 
+  // 修改消息显示部分
   const renderMessageContent = (message: Message) => {
     if (message.type === 'image') {
       return (
         <div className="relative cursor-pointer" onClick={() => setSelectedImage(message.content)}>
-          <img
+          <img 
             src={message.content}
             alt="图片消息"
             className="rounded-lg max-w-[240px] hover:opacity-90 transition-opacity"
@@ -257,39 +282,37 @@ export default function ChatWindow({ chatId, title, showUserInfo = true, isComme
   return (
     <>
       <div className="relative flex flex-col h-full border border-border rounded-2xl overflow-hidden bg-white dark:bg-gray-800 bg-opacity-70 dark:bg-opacity-70">
+        {/* 顶部区域 */}
         <div className="fixed-header backdrop-blur-md absolute top-0 left-0 right-0 h-[48px] z-30">
           <div className="p-2 flex items-center bg-white/70 dark:bg-gray-800/70 h-full">
+            {/* 终端窗口顶部按钮 */}
             <div className="absolute top-0 left-0 right-0 h-8 flex items-center px-4 mt-2">
               <div className="w-4 h-4 bg-red-500 rounded-full mr-2"></div>
               <div className="w-4 h-4 bg-yellow-500 rounded-full mr-2"></div>
               <div className="w-4 h-4 bg-green-500 rounded-full"></div>
 
               <div className="flex items-center mx-auto px-2">
-                {showUserInfo && !isComment ? (
-                  <>
-                    <Avatar className="h-7 w-7 mr-3">
-                      <AvatarImage 
-                        src={partnerAvatar} 
-                        alt={partnerName} 
-                        onError={(e) => {
-                          (e.currentTarget as HTMLImageElement).src = '/images/lon.jpg';
-                          e.currentTarget.onerror = null;
-                        }} 
-                      />
-                      <AvatarFallback>{partnerName?.[0] || "?"}</AvatarFallback>
-                    </Avatar>
-                    <h2 className="font-medium text-gray-800 dark:text-gray-200">{partnerName || '加载中...'}</h2>
-                  </>
-                ) : (
-                  <h2 className="font-medium text-gray-800 dark:text-gray-200">{title || '评论区'}</h2>
-                )}
+                <Avatar className="h-7 w-7 mr-3">
+                  <AvatarImage 
+                    src={chatPartner.avatar || '/images/lon.jpg'} 
+                    alt={chatPartner.name} 
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = '/images/lon.jpg';
+                      e.currentTarget.onerror = null;
+                    }} 
+                  />
+                  <AvatarFallback>{chatPartner.name?.[0] || "?"}</AvatarFallback>
+                </Avatar>
+                <h2 className="font-medium text-gray-800 dark:text-gray-200">{chatPartner.name}</h2>
               </div>
             </div>
           </div>
+          {/* 渐变横线 */}
           <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500"></div>
         </div>
 
-        <div className="relative z-10 flex-grow overflow-y-auto p-4 pt-[52px] text白">
+        {/* 聊天内容区域 */}
+        <div className="relative z-10 flex-grow overflow-y-auto p-4 pt-[52px] text-white">
           {loading ? (
             <div className="flex justify-center items-center h-full">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
@@ -312,10 +335,14 @@ export default function ChatWindow({ chatId, title, showUserInfo = true, isComme
                 {message.sender !== 'user' && (
                   <Avatar className="h-8 w-8 mr-2 flex-shrink-0">
                     <AvatarImage 
-                      src="/images/lon.jpg"
-                      alt="User avatar"
+                      src={chatPartner.avatar || '/images/lon.jpg'}
+                      alt={`${chatPartner.name} avatar`}
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = '/images/lon.jpg';
+                        e.currentTarget.onerror = null;
+                      }}
                     />
-                    <AvatarFallback>U</AvatarFallback>
+                    <AvatarFallback>{chatPartner.name?.[0] || "U"}</AvatarFallback>
                   </Avatar>
                 )}
                 
@@ -335,6 +362,10 @@ export default function ChatWindow({ chatId, title, showUserInfo = true, isComme
                     <AvatarImage 
                       src="/images/avt.jpg"
                       alt="User avatar"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = '/images/lon.jpg';
+                        e.currentTarget.onerror = null;
+                      }}
                     />
                     <AvatarFallback>U</AvatarFallback>
                   </Avatar>
@@ -345,6 +376,7 @@ export default function ChatWindow({ chatId, title, showUserInfo = true, isComme
           <div ref={messagesEndRef} />
         </div>
 
+        {/* 聊天输入框 */}
         <div className="p-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-700 mt-auto text白 bg-opacity-60 dark:bg-opacity-60">
           {imagePreview && (
             <div className="mb-2 relative inline-block">
@@ -394,11 +426,12 @@ export default function ChatWindow({ chatId, title, showUserInfo = true, isComme
         </div>
       </div>
 
+      {/* 图片预览对话框 */}
       <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
         <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 bg-transparent border-0">
           <DialogTitle className="sr-only">查看图片</DialogTitle>
           <div className="relative w-full h-full flex items-center justify-center">
-            {selectedImage && (
+            {selectedImage && (  // 只在有图片时渲染 img 标签
               <img
                 src={selectedImage}
                 alt="预览图片"

@@ -88,6 +88,18 @@ export default function TopicDetail() {
     text: 'text-indigo-800 dark:text-indigo-300'
   };
 
+  // 根据选中的标签筛选帖子
+  useEffect(() => {
+    if (selectedTag) {
+      const filtered = posts.filter((post: any) => 
+        post.tags?.some((tag: string) => tag.includes(selectedTag.replace('#', '')))
+      );
+      setFilteredPosts(filtered);
+    } else {
+      setFilteredPosts(posts);
+    }
+  }, [selectedTag, posts]);
+
   // 获取帖子数据
   useEffect(() => {
     async function fetchPosts() {
@@ -133,16 +145,6 @@ export default function TopicDetail() {
           tags?: string[];
           // 添加其他可能的帖子属性
         }> || []);
-        
-        // 根据当前选中的标签设置 filteredPosts
-        if (selectedTag) {
-          const filtered = allPosts.filter((post: any) => 
-            post.tags?.some((tag: string) => tag.includes(selectedTag.replace('#', '')))
-          );
-          setFilteredPosts(filtered);
-        } else {
-          setFilteredPosts(allPosts);
-        }
       } catch (err) {
         console.error('Error fetching posts:', err);
         setError('无法加载帖子，请稍后再试');
@@ -152,8 +154,8 @@ export default function TopicDetail() {
     }
 
     fetchPosts();
-  }, [topic, selectedTag]);
-
+  }, [topic]);
+  
   // 获取主题对应的主标签
   const getTopicMainTag = (topicName: string) => {
     const tagMap: { [key: string]: string } = {
@@ -211,21 +213,39 @@ export default function TopicDetail() {
     return tagMap[topicName] || [];
   };
   
-  // 简化标签点击处理逻辑
-  const handleTagClick = (tag: string) => {
-    setSelectedTag(prevTag => {
-      const newTag = prevTag === tag ? null : tag;
-      // 立即更新 filteredPosts
-      if (newTag) {
-        const filtered = posts.filter((post: any) => 
-          post.tags?.some((postTag: string) => postTag.includes(newTag.replace('#', '')))
-        );
-        setFilteredPosts(filtered);
-      } else {
-        setFilteredPosts(posts);
+  // 当选中标签变化时，重新获取帖子
+  useEffect(() => {
+    async function fetchPostsByTag() {
+      if (!selectedTag) return;
+      
+      try {
+        setLoading(true);
+        const tagText = selectedTag.replace('#', '');
+        // 使用API获取特定标签的帖子
+        const data = await postsAPI.getPosts(undefined, topic, tagText);
+        setFilteredPosts(data || []);
+      } catch (err) {
+        console.error('Error fetching posts by tag:', err);
+        setError('无法加载标签相关帖子，请稍后再试');
+      } finally {
+        setLoading(false);
       }
-      return newTag;
-    });
+    }
+
+    if (selectedTag) {
+      fetchPostsByTag();
+    } else {
+      setFilteredPosts(posts);
+    }
+  }, [selectedTag, topic]);
+
+  // 处理标签点击事件
+  const handleTagClick = (tag: string) => {
+    if (selectedTag === tag) {
+      setSelectedTag(null); // 取消选中
+    } else {
+      setSelectedTag(tag); // 选中新标签
+    }
   };
 
   return (

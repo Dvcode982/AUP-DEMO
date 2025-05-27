@@ -102,6 +102,24 @@ module.exports = (app, db, authenticateToken) => {
           return res.status(500).json({ error: 'Error fetching post tags' });
         }
         post.tags = tags.map(t => t.tag);
+        
+        // 记录用户浏览行为（如果用户已登录）
+        if (req.user?.userId) {
+          const topic = post.category || '';
+          const mainTag = tags.length > 0 ? tags[0].tag : null;
+          
+          db.run(
+            `INSERT INTO user_interactions (user_id, post_id, topic, tag, action_type)
+             VALUES (?, ?, ?, ?, 'view')`,
+            [req.user.userId, id, topic, mainTag],
+            (err) => {
+              if (err) {
+                console.error('Error recording user interaction:', err);
+              }
+            }
+          );
+        }
+        
         res.json(post);
       });
     });

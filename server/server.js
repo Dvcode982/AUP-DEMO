@@ -120,8 +120,42 @@ function initializeTables() {
               return reject(err);
             }
             
-            console.log('All forum tables initialized successfully');
-            resolve();
+            // 用户行为追踪表
+            db.run(`CREATE TABLE IF NOT EXISTS user_interactions (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              user_id INTEGER NOT NULL,
+              post_id INTEGER,
+              topic TEXT,
+              tag TEXT,
+              action_type TEXT NOT NULL, -- 'view', 'like', 'comment', 'share', 'create'
+              created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+              FOREIGN KEY (user_id) REFERENCES users (id),
+              FOREIGN KEY (post_id) REFERENCES posts (id)
+            )`, (err) => {
+              if (err) {
+                console.error('Error creating user_interactions table:', err.message);
+                return reject(err);
+              }
+              
+              // 主题聚合缓存表
+              db.run(`CREATE TABLE IF NOT EXISTS topic_aggregations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                topic TEXT NOT NULL,
+                related_tags TEXT, -- JSON array of related tags
+                score REAL DEFAULT 0, -- 相关性分数
+                last_updated DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+              )`, (err) => {
+                if (err) {
+                  console.error('Error creating topic_aggregations table:', err.message);
+                  return reject(err);
+                }
+                
+                console.log('All forum tables initialized successfully');
+                resolve();
+              });
+            });
           });
         });
       });
@@ -160,6 +194,7 @@ require('./routes/posts')(app, db, authenticateToken);
 require('./routes/comments')(app, db, authenticateToken);
 require('./routes/users')(app, db, authenticateToken);
 require('./routes/messages')(app, db, authenticateToken);
+require('./routes/topicAggregation')(app, db, authenticateToken);
 
 // 失物招领相关路由使用独立数据库
 require('./routes/lostAndFound')(app, dbLostFound, authenticateToken);

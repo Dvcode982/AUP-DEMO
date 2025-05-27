@@ -82,28 +82,22 @@ function StaticTopicCard({ topic, colors, sizeClass }: Omit<TopicCardProps, 'onC
 }
 
 export default function TopicBlock() {
-  // 移除初始状态值，让它一开始为 null
-  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
-
-  // 添加点击处理函数
-  const handleTopicClick = (topic: string) => {
-    setSelectedTopic(current => current === topic ? null : topic);
-  };
+  const [selectedTopic, setSelectedTopic] = useState<string | null>("学术交流");  // 设置默认选中主题
 
   const topicCards = [
-    { topic: '主题分类', sizeClass: 'col-span-4 row-span-2' },
-    { topic: '资源分享', sizeClass: 'col-span-3 row-span-4' },
-    { topic: '竞赛交流', sizeClass: 'col-span-3 row-span-4' },
-    { topic: '学术交流', sizeClass: 'col-span-4 row-span-6' },
-    { topic: '校园生活', sizeClass: 'col-span-3 row-span-4' },
-    { topic: '校园杂谈', sizeClass: 'col-span-3 row-span-4' },
-    { topic: '技术交流', sizeClass: 'col-span-3 row-span-6' },
-    { topic: '表白墙', sizeClass: 'col-span-4 row-span-6' },
-    { topic: '就业兼职', sizeClass: 'col-span-3 row-span-6' }
+    { topic: '主题分类', sizeClass: 'col-span-2 row-span-1' },
+    { topic: '资源分享', sizeClass: 'col-span-2 row-span-1' },
+    { topic: '竞赛交流', sizeClass: 'col-span-2 row-span-1' },
+    { topic: '学术交流', sizeClass: 'col-span-3 row-span-2' },
+    { topic: '校园生活', sizeClass: 'col-span-2 row-span-1' },
+    { topic: '校园杂谈', sizeClass: 'col-span-2 row-span-1' },
+    { topic: '技术交流', sizeClass: 'col-span-2 row-span-2' },
+    { topic: '表白墙', sizeClass: 'col-span-2 row-span-1' },
+    { topic: '就业兼职', sizeClass: 'col-span-2 row-span-1' }
   ];
 
   return (
-    <div className="flex h-screen bg-opacity-80 dark:bg-opacity-80 ">
+    <div className="flex h-screen bg-gradient-to-br from-white to-blue-50 dark:from-gray-900 dark:to-indigo-950 bg-opacity-80 dark:bg-opacity-80 backdrop-blur-sm">
       <Sidebar />
       
       <main className="flex-1 flex flex-col p-4">
@@ -120,7 +114,7 @@ export default function TopicBlock() {
         </div>
 
         {/* 主题卡片区 */}
-        <div className="relative h-full border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden bg-white dark:bg-gray-800 bg-opacity-80 dark:bg-opacity-80 shadow-md flex-grow">
+        <div className="relative h-full border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden bg-white dark:bg-gray-800 bg-opacity-80 dark:bg-opacity-80 backdrop-blur-sm shadow-md flex-grow">
           <div className="absolute top-0 left-0 right-0 h-3 bg-white dark:bg-gray-800 flex items-center px-4 z-20 mt-2 bg-opacity-0 dark:bg-opacity-0">
             <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
             <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
@@ -128,10 +122,7 @@ export default function TopicBlock() {
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 z-20 mt-6 overflow-hidden"></div>
           </div>
         
-          <div
-            className="grid grid-cols-10 grid-rows-10 gap-6 flex-auto relative z-10 flex-grow p-6 pt-20 "
-            style={{ maxHeight: 'calc(100vh - 140px)' }}
-          >
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 flex-auto relative z-10 flex-grow p-4 pt-12 overflow-y-auto" style={{maxHeight: 'calc(100vh - 140px)'}}>
             {topicCards.map(({ topic, sizeClass }) => {
               if (topic === '主题分类') {
                 return (
@@ -149,7 +140,11 @@ export default function TopicBlock() {
                   topic={topic}
                   colors={TOPIC_COLORS[topic]}
                   sizeClass={sizeClass}
-                  onClick={() => handleTopicClick(topic)}
+                  onClick={() => {
+                    setSelectedTopic(topic);
+                    window.location.href = `/topic-block/${encodeURIComponent(topic)}`;
+                  }}
+                  onMouseEnter={() => setSelectedTopic(topic)}
                 />
               );
             })}
@@ -159,14 +154,14 @@ export default function TopicBlock() {
 
       {/* 标签区 */}
       <div className="relative flex flex-col flex-none basis-80 p-4">
-        <div className="relative flex flex-col h-full border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden bg-white dark:bg-gray-800 bg-opacity-80 dark:bg-opacity-80 shadow-md">
+        <div className="relative flex flex-col h-full border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden bg-white dark:bg-gray-800 bg-opacity-80 dark:bg-opacity-80 backdrop-blur-sm shadow-md">
           <div className="absolute top-0 left-0 right-0 h-3 bg-white dark:bg-gray-800 flex items-center px-4 z-20 mt-2 bg-opacity-0 dark:bg-opacity-0">
             <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
             <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
             <div className="w-3 h-3 bg-green-500 rounded-full"></div>
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 to-purple-500 z-20 mt-6 overflow-hidden"></div>
           </div>
-          <div className="relative z-10 flex-grow p-4 pt-16 item">
+          <div className="relative z-10 flex-grow overflow-y-auto p-4 pt-16 item">
             {selectedTopic && (
               <TopicContent 
                 topic={selectedTopic} 
