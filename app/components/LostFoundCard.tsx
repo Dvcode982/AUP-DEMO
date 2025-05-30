@@ -5,9 +5,12 @@ import { useState } from 'react'
 import { lostAndFoundAPI } from '@/lib/api'
 
 interface LostFoundCardProps {
-  id: number
+  id: string | number
   author: string
-  avatar: string
+  author_id?: string | number
+  author_email?: string
+  author_avatar?: string // 新增字段
+  avatar?: string // 兼容旧数据
   content: string
   image?: string
   images?: string[] // 支持多图片数组
@@ -25,6 +28,7 @@ interface LostFoundCardProps {
 const LostFoundCard = ({
   id,
   author,
+  author_avatar,
   avatar,
   content,
   image,
@@ -42,6 +46,15 @@ const LostFoundCard = ({
   // 状态管理
   const [shareCount, setShareCount] = useState(shares);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // 使用新的头像字段，如果没有则使用旧的
+  const displayAvatar = author_avatar || avatar;
+  
+  // 处理头像显示
+  const [avatarError, setAvatarError] = useState(false);
+  const handleAvatarError = () => {
+    setAvatarError(true);
+  };
   
   // 处理图片显示逻辑
   const hasMultipleImages = image && images.length > 0 ? true : (images.length > 1);
@@ -104,17 +117,26 @@ const LostFoundCard = ({
         </div>
 
         <div className="p-4 relative flex flex-col h-full">
-          <div className="flex items-center mb-3">
-            <Image
-              src={avatar}
-              alt={author}
-              width={40}
-              height={40}
-              className="rounded-full border-2 border-blue-100 dark:border-blue-900 z-0"
-            />
-            <div className="ml-3">
-              <h3 className="font-bold text-gray-800 dark:text-gray-200">{author}</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">{time}</p>
+          <div className="flex items-start justify-between mb-2">
+            <div className="flex items-center flex-1 min-w-0">
+              {displayAvatar && !avatarError ? (
+                <Image
+                  src={displayAvatar}
+                  alt={author}
+                  width={36}
+                  height={36}
+                  className="rounded-full border border-gray-200 dark:border-gray-700 flex-shrink-0"
+                  onError={handleAvatarError}
+                />
+              ) : (
+                <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                  {author.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div className="ml-2.5 flex-1 min-w-0">
+                <h3 className="font-semibold text-sm text-gray-800 dark:text-gray-200 truncate">{author}</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{time}</p>
+              </div>
             </div>
           </div>
           

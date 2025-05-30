@@ -20,20 +20,30 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     if (!mounted) return
     
-    if (isCustomBackground) {
-      const overlay = theme === 'dark'
-        ? "linear-gradient(rgba(122, 122, 122, 0.6), rgba(99, 99, 99, 0.5))"
-        : "linear-gradient(rgba(221, 221, 221, 0.29), rgba(255, 255, 255, 0.39))"
+    const updateBackground = () => {
+      if (isCustomBackground) {
+        const overlay = theme === 'dark'
+          ? "linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.6))"
+          : "linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.7))"
 
-      document.body.style.backgroundImage = `${overlay}, url('/images/EVA_BG.jpg')`
-      document.body.style.backgroundSize = "cover"
-      document.body.style.backgroundPosition = "center"
-      document.body.style.backgroundRepeat = "no-repeat"
-      document.body.style.backgroundAttachment = "fixed"
-    } else {
-      document.body.style.backgroundImage = ""
-      document.body.style.backgroundAttachment = ""
+        document.body.style.cssText = `
+          background-image: ${overlay}, url('/images/EVA_BG.jpg') !important;
+          background-size: cover !important;
+          background-position: center !important;
+          background-repeat: no-repeat !important;
+          background-attachment: fixed !important;
+          transition: background-image 0.3s ease-in-out !important;
+        `
+      } else {
+        document.body.style.cssText = `
+          background-image: none !important;
+          background-color: ${theme === 'dark' ? '#1a1a1a' : '#ffffff'} !important;
+          transition: background-color 0.3s ease-in-out !important;
+        `
+      }
     }
+
+    updateBackground()
   }, [theme, isCustomBackground, mounted])
 
   const toggleBackground = () => {

@@ -3,10 +3,12 @@
 import Sidebar from '../components/Sidebar'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
+import { useBackground } from '../contexts/BackgroundContext'
 
 export default function Feedback() {
   const { theme } = useTheme()
   const [mounted, setMounted] = useState(false)
+  const { toggleBackground } = useBackground()
 
   // 防止 hydration 不匹配
   useEffect(() => {
@@ -23,31 +25,35 @@ export default function Feedback() {
       ? 'bg-gray-900' 
       : 'bg-gradient-to-br from-yellow-50 to-red-50',
     card: theme === 'dark' 
-      ? 'bg-gray-800 text-gray-200' 
-      : 'bg-white text-gray-800',
+      ? 'bg-gray-800/70 text-gray-200' 
+      : 'bg-white/70 text-gray-800',
     input: theme === 'dark'
-      ? 'bg-gray-700 border-gray-600 text-gray-200'
-      : 'bg-white border-gray-300 text-gray-700',
+      ? 'bg-gray-700/70 border-gray-600 text-gray-200'
+      : 'bg-white/70 border-gray-300 text-gray-700',
     label: theme === 'dark' 
       ? 'text-gray-300' 
       : 'text-gray-600'
   }
 
   return (
-    <div className={`flex h-screen ${themeClasses.background}`}>
+    <div className="flex h-screen">
       <Sidebar />
+      <button onClick={toggleBackground} className="absolute top-4 right-4 p-2 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all">
+        切换背景
+      </button>
+      
       <main className="flex-1 p-4 overflow-hidden">
         <div className="max-w-2xl mx-auto">
           <h1 className={`text-2xl font-bold mb-4 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>
             反馈
           </h1>
-          <div className={`${themeClasses.card} rounded-lg shadow-sm p-4`}>
+          <div className={`${themeClasses.card} rounded-lg shadow-sm p-4 backdrop-blur-sm`}>
             <form>
               <div className="mb-4">
                 <label className={`block text-sm font-medium ${themeClasses.label} mb-2`}>
                   反馈类型
                 </label>
-                <select className={`mt-1 block w-full rounded-md border ${themeClasses.input} shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50`}>
+                <select className={`mt-1 block w-full rounded-md border ${themeClasses.input} shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 backdrop-blur-sm`}>
                   <option>功能建议</option>
                   <option>问题报告</option>
                   <option>其他</option>
@@ -59,7 +65,7 @@ export default function Feedback() {
                   反馈内容
                 </label>
                 <textarea 
-                  className={`mt-1 block w-full rounded-md border ${themeClasses.input} shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50`} 
+                  className={`mt-1 block w-full rounded-md border ${themeClasses.input} shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 backdrop-blur-sm`} 
                   rows={5} 
                   placeholder="请详细描述您的反馈..."
                 />
@@ -67,7 +73,7 @@ export default function Feedback() {
 
               <button 
                 type="submit" 
-                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-200"
+                className="bg-blue-500/90 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-200 shadow-sm hover:shadow-md"
               >
                 提交反馈
               </button>

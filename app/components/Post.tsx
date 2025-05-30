@@ -2,13 +2,14 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { Check, MessageCircle, Heart, Share2, MapPin, Calendar, User, Building } from 'lucide-react'
+import { Check, MessageCircle, Heart, Share2, MapPin, Calendar, User, Building, Tag } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { postsAPI, topicAggregationAPI } from '@/lib/api'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../contexts/AuthContext'
+import { useLanguage } from '../contexts/LanguageContext'
 
-interface PostProps {
+export interface PostProps {
   id: string | number
   author: string
   author_id?: string | number
@@ -25,7 +26,7 @@ interface PostProps {
   isLostAndFound?: boolean
   isReturned?: boolean
   returnedTime?: string
-  postType?: 'forum' | 'lostAndFound'
+  postType?: string // 改为 string 类型
   likes?: number
   comments?: number
   shares?: number
@@ -45,16 +46,17 @@ const Post = ({
   image, 
   images = [], 
   time, 
-  tags, 
-  isLostAndFound, 
-  isReturned, 
+  tags = [], 
+  isLostAndFound = false, 
+  isReturned = false, 
   returnedTime, 
   postType = 'forum', 
   likes = 0, 
   comments = 0, 
-  shares = 0, 
-  category 
+  shares = 0,
+  category
 }: PostProps) => {
+  const { t } = useLanguage()
   // 状态管理
   const [likeCount, setLikeCount] = useState(likes);
   const [shareCount, setShareCount] = useState(shares);
@@ -184,138 +186,122 @@ const Post = ({
     return roleStyles[role] || 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400';
   };
   
+  // 在组件内部处理 postType 的类型
+  const normalizedPostType = postType === 'lostAndFound' ? 'lostAndFound' : 'forum'
+  
   return (
-    <Link href={postType === 'lostAndFound' ? `/lost-and-found/${id}` : `/post/${id}`} className="block w-full h-full">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden hover:shadow-lg relative border border-gray-100 dark:border-gray-700 h-full flex flex-col group transition-all duration-300 hover:scale-[1.02] hover:border-blue-200 dark:hover:border-blue-700">
-        {isLostAndFound && (
-          <div className="absolute top-2 right-2 flex items-center bg-white bg-opacity-90 rounded-full px-2 py-1 text-xs font-medium shadow-sm z-10">
-            {isReturned ? (
-              <>
-                <Check className="text-green-500 mr-1" size={16} />
-                <span className="text-xs text-green-500">已返还 {returnedTime}</span>
-              </>
+    <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+      <div className="p-4">
+        {/* 作者信息 */}
+        <div className="flex items-center mb-3">
+          <div className="relative">
+            {author_avatar || avatar ? (
+              <Image
+                src={author_avatar || avatar || '/placeholder.svg?height=40&width=40'}
+                alt={author}
+                width={40}
+                height={40}
+                className="rounded-full border-2 border-gray-200 dark:border-gray-600"
+              />
             ) : (
-              <span className="text-xs text-red-500">未返还</span>
-            )}
-          </div>
-        )}
-        
-        {/* 图片区域 - 放在顶部 */}
-        {displayImage && displayImage !== "" && (
-          <div className="relative aspect-[16/9] overflow-hidden bg-gray-100 dark:bg-gray-900">
-            <Image 
-              src={displayImage} 
-              alt="Post image" 
-              fill
-              className="object-cover group-hover:scale-105 transition-transform duration-300" 
-            />
-            {hasMultipleImages && additionalImagesCount > 0 && (
-              <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded-md text-xs font-medium backdrop-blur-sm">
-                +{additionalImagesCount} 张
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-lg font-bold">
+                {author.charAt(0).toUpperCase()}
               </div>
             )}
-          </div>
-        )}
-        
-        <div className="p-3 flex-1 flex flex-col">
-          {/* 用户信息 - 更丰富的展示 */}
-          <div className="flex items-start justify-between mb-2">
-            <div className="flex items-center flex-1 min-w-0">
-              {displayAvatar ? (
-                <Image
-                  src={displayAvatar}
-                  alt={author}
-                  width={36}
-                  height={36}
-                  className="rounded-full border border-gray-200 dark:border-gray-700 flex-shrink-0"
-                />
-              ) : (
-                <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                  {author.charAt(0).toUpperCase()}
-                </div>
-              )}
-              <div className="ml-2.5 flex-1 min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <h3 className="font-semibold text-sm text-gray-800 dark:text-gray-200 truncate">{author}</h3>
-                  {author_role && (
-                    <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${getRoleBadgeStyle(author_role)}`}>
-                      {author_role}
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                  <span>{time}</span>
-                  {author_department && (
-                    <>
-                      <span>·</span>
-                      <span className="flex items-center gap-0.5">
-                        <Building className="w-3 h-3" />
-                        {author_department}
-                      </span>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-            {category && (
-              <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded text-xs font-medium ml-2 flex-shrink-0">
-                {category}
+            {author_role && (
+              <span className="absolute -bottom-1 -right-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                {author_role}
               </span>
             )}
           </div>
-          
-          {/* 内容区域 - 优化行高和间距 */}
-          <div className="mb-2 flex-1">
-            <p className={`text-gray-700 dark:text-gray-300 text-sm leading-relaxed ${displayImage ? 'line-clamp-2' : 'line-clamp-3'} break-words`}>
-              {content}
-            </p>
-          </div>
-          
-          {/* 标签区域 - 更紧凑 */}
-          {tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-2">
-              {tags.slice(0, 3).map((tag, index) => (
-                <span key={index} className="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-full text-xs font-medium">
-                  #{tag}
-                </span>
-              ))}
-              {tags.length > 3 && (
-                <span className="text-xs text-gray-500 dark:text-gray-400 px-1">
-                  +{tags.length - 3}
+          <div className="ml-3 flex-1 min-w-0">
+            <div className="flex items-center">
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                {author}
+              </p>
+              {author_department && (
+                <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
+                  {author_department}
                 </span>
               )}
             </div>
-          )}
-          
-          {/* 互动区域 - 更紧凑的设计 */}
-          <div className="flex items-center justify-between text-gray-500 dark:text-gray-400 pt-2 border-t border-gray-100 dark:border-gray-700 mt-auto">
-            <button 
-              className="flex items-center gap-1 hover:text-red-500 transition-colors group/like"
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {time}
+            </p>
+          </div>
+        </div>
+
+        {/* 帖子内容 */}
+        <Link href={`/post/${id}`} className="block">
+          <p className="text-gray-700 dark:text-gray-300 text-sm line-clamp-3 mb-3">
+            {content}
+          </p>
+        </Link>
+
+        {/* 图片预览 */}
+        {displayImage && (
+          <div className="relative aspect-video rounded-lg overflow-hidden mb-3">
+            <Image
+              src={displayImage}
+              alt={t('post.image')}
+              fill
+              className="object-cover"
+            />
+            {hasMultipleImages && (
+              <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
+                +{additionalImagesCount}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 标签 */}
+        {tags && tags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {tags.map((tag, index) => (
+              <span
+                key={index}
+                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+              >
+                <Tag className="w-3 h-3 mr-1" />
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* 互动按钮 */}
+        <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-700">
+          <div className="flex items-center space-x-4">
+            <button
               onClick={handleLike}
+              disabled={isProcessing}
+              className={`flex items-center space-x-1 text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors ${
+                isLiked ? 'text-blue-500 dark:text-blue-400' : ''
+              }`}
             >
-              <Heart 
-                size={16} 
-                className={`${isLiked ? "fill-red-500 text-red-500" : ""} group-hover/like:scale-110 transition-transform`} 
-              />
-              <span className="text-xs font-medium">{likeCount || 0}</span>
+              <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
+              <span>{likeCount}</span>
             </button>
-            
-            <button className="flex items-center gap-1 hover:text-blue-500 transition-colors group/comment">
-              <MessageCircle size={16} className="group-hover/comment:scale-110 transition-transform" />
-              <span className="text-xs font-medium">{comments || 0}</span>
-            </button>
-            
-            <button 
-              className="flex items-center gap-1 hover:text-green-500 transition-colors group/share"
+            <Link
+              href={`/post/${id}`}
+              className="flex items-center space-x-1 text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
+            >
+              <MessageCircle className="w-5 h-5" />
+              <span>{comments}</span>
+            </Link>
+            <button
               onClick={handleShare}
+              disabled={isProcessing}
+              className="flex items-center space-x-1 text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
             >
-              <Share2 size={16} className="group-hover/share:scale-110 transition-transform" />
-              <span className="text-xs font-medium">{shareCount || 0}</span>
+              <Share2 className="w-5 h-5" />
+              <span>{shareCount}</span>
             </button>
           </div>
         </div>
       </div>
-    </Link>
+    </div>
   )
 }
 

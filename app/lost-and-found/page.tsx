@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useBackground } from '@/app/contexts/BackgroundContext'
 import Sidebar from '../components/Sidebar'
 import LostFoundCard from '../components/LostFoundCard'
 import SearchBar from '../components/SearchBar'
@@ -11,6 +12,7 @@ export default function LostAndFound() {
   const [lostAndFoundPosts, setLostAndFoundPosts] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
+  const { toggleBackground } = useBackground();
 
   useEffect(() => {
     // 从URL获取搜索参数
@@ -50,6 +52,7 @@ export default function LostAndFound() {
   return (
     <div className="flex h-screen ">
       <Sidebar />
+      <button onClick={toggleBackground} className="absolute top-4 right-4 p-2 bg-gray-200 dark:bg-gray-700 rounded">切换背景</button>
       <main className="flex-1 p-4 overflow-hidden">
         <div className="max-w-6xl mx-auto">
           <SearchBar onSearch={handleSearch} />

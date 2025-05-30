@@ -4,6 +4,9 @@ import { useState } from 'react'
 import Sidebar from '../components/Sidebar'
 import TopicCard from '../components/TopicCard'
 import TopicContent from '../components/TopicContent'
+import { useBackground } from '../contexts/BackgroundContext'
+import { useLanguage } from '../contexts/LanguageContext'
+import type { TopicCardProps } from '../components/TopicCard'
 
 // 主题颜色配置表
 const TOPIC_COLORS: Record<string, { border: string; glow: string; bg: string; text: string }> = {
@@ -65,6 +68,7 @@ const TOPIC_COLORS: Record<string, { border: string; glow: string; bg: string; t
 
 // 添加一个静态卡片组件
 function StaticTopicCard({ topic, colors, sizeClass }: Omit<TopicCardProps, 'onClick'>) {
+  const { t } = useLanguage()
   return (
     <div
       className={`relative p-6 bg-white dark:bg-gray-800 bg-opacity-80 dark:bg-opacity-80 backdrop-blur-sm rounded-2xl border-2 shadow-sm hover:shadow-md transition-all duration-300 ${sizeClass}`}
@@ -74,7 +78,7 @@ function StaticTopicCard({ topic, colors, sizeClass }: Omit<TopicCardProps, 'onC
     >
       <div className="relative flex flex-col items-center justify-center h-full">
         <div className="text-center font-semibold text-[17px] text-gray-800 dark:text-gray-200">
-          {topic}
+          {t(`topic.${topic}`)}
         </div>
       </div>
     </div>
@@ -83,6 +87,8 @@ function StaticTopicCard({ topic, colors, sizeClass }: Omit<TopicCardProps, 'onC
 
 export default function TopicBlock() {
   const [selectedTopic, setSelectedTopic] = useState<string | null>("学术交流");  // 设置默认选中主题
+  const { toggleBackground } = useBackground()
+  const { t } = useLanguage()
 
   const topicCards = [
     { topic: '主题分类', sizeClass: 'col-span-2 row-span-1' },
@@ -97,8 +103,11 @@ export default function TopicBlock() {
   ];
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-white to-blue-50 dark:from-gray-900 dark:to-indigo-950 bg-opacity-80 dark:bg-opacity-80 backdrop-blur-sm">
+    <div className="flex h-screen">
       <Sidebar />
+      <button onClick={toggleBackground} className="absolute top-4 right-4 p-2 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all">
+        切换背景
+      </button>
       
       <main className="flex-1 flex flex-col p-4">
         {/* 搜索框 */}
@@ -106,16 +115,16 @@ export default function TopicBlock() {
           <input
             type="text"
             placeholder="搜索主题..."
-            className="w-full p-3.5 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-xl 
+            className="w-full p-3.5 bg-white/70 dark:bg-gray-800/70 text-gray-800 dark:text-gray-200 rounded-xl 
                    placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 
                    focus:ring-blue-500 border border-gray-200 dark:border-gray-700 text-sm 
-                   bg-opacity-80 dark:bg-opacity-80 backdrop-blur-sm shadow-sm"
+                   backdrop-blur-sm shadow-sm"
           />
         </div>
 
         {/* 主题卡片区 */}
-        <div className="relative h-full border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden bg-white dark:bg-gray-800 bg-opacity-80 dark:bg-opacity-80 backdrop-blur-sm shadow-md flex-grow">
-          <div className="absolute top-0 left-0 right-0 h-3 bg-white dark:bg-gray-800 flex items-center px-4 z-20 mt-2 bg-opacity-0 dark:bg-opacity-0">
+        <div className="relative flex-grow">
+          <div className="absolute top-0 left-0 right-0 h-3 flex items-center px-4 z-20 mt-2">
             <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
             <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
             <div className="w-3 h-3 bg-green-500 rounded-full"></div>

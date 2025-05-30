@@ -1,13 +1,16 @@
 'use client'
 
 import { useParams, useSearchParams } from 'next/navigation'
+import { useBackground } from '@/app/contexts/BackgroundContext'
 import Sidebar from '../../components/Sidebar'
-import Post from '../../components/Post'
+import Post, { PostProps } from '../../components/Post'
 import TopicContent from '../../components/TopicContent'
 import { useState, useEffect } from 'react'
 import { postsAPI } from '@/lib/api'
 import Link from 'next/link'
 import { ArrowLeft, Filter } from 'lucide-react'
+import { useLanguage } from '../../contexts/LanguageContext'
+import TopicRecommendations from '../../components/TopicRecommendations'
 
 // 主题颜色配置表
 const TOPIC_COLORS: Record<string, { border: string; glow: string; bg: string; text: string }> = {
@@ -65,12 +68,14 @@ export default function TopicDetail() {
   const params = useParams();
   const searchParams = useSearchParams();
   const topic = decodeURIComponent(params.topic as string);
-  const [posts, setPosts] = useState([]);
-  const [filteredPosts, setFilteredPosts] = useState([]);
+  const { t } = useLanguage();
+  const [posts, setPosts] = useState<PostProps[]>([]);
+  const [filteredPosts, setFilteredPosts] = useState<PostProps[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [showTagFilter, setShowTagFilter] = useState(false);
+  const { toggleBackground } = useBackground();
   
   // 从URL查询参数中获取标签
   useEffect(() => {
@@ -91,7 +96,7 @@ export default function TopicDetail() {
   // 根据选中的标签筛选帖子
   useEffect(() => {
     if (selectedTag) {
-      const filtered = posts.filter((post: any) => 
+      const filtered = posts.filter((post: PostProps) => 
         post.tags?.some((tag: string) => tag.includes(selectedTag.replace('#', '')))
       );
       setFilteredPosts(filtered);
@@ -102,59 +107,38 @@ export default function TopicDetail() {
 
   // 获取帖子数据
   useEffect(() => {
-    async function fetchPosts() {
+    const fetchPosts = async () => {
       try {
-        setLoading(true);
-        // 直接使用API获取特定主题的帖子
-        const data = await postsAPI.getPosts(undefined, topic);
+        setLoading(true)
+        const allPosts = await postsAPI.getPosts(undefined, topic)
         
-        // 获取带有当前主题标签的所有帖子
-        // 例如：如果当前主题是"表白墙"，则获取所有带有"表白墙"相关标签的帖子
-        const mainTagPosts = await postsAPI.getPosts(undefined, undefined, getTopicMainTag(topic));
+        // 确保所有必需的字段都存在，并设置正确的类型
+        const typedPosts: PostProps[] = (allPosts || []).map((post: any) => ({
+          ...post,
+          postType: post.postType || 'forum',
+          likes: Number(post.likes) || 0,
+          comments: Number(post.comments) || 0,
+          shares: Number(post.shares) || 0,
+          tags: Array.isArray(post.tags) ? post.tags : [],
+          images: Array.isArray(post.images) ? post.images : [],
+          author_avatar: post.author_avatar || post.avatar || '',
+          author_role: post.author_role || '',
+          author_department: post.author_department || '',
+          category: topic
+        }))
         
-        // 合并两种帖子并去重
-        const allPosts = [...data];
-        
-        // 将主标签帖子添加到结果中（避免重复）
-        mainTagPosts.forEach((tagPost: { id: string }) => {
-          if (!allPosts.some(post => post.id === tagPost.id)) {
-            allPosts.push(tagPost);
-          }
-        });
-        
-        // 获取主题下的所有子标签
-        const subTags = getTopicSubTags(topic);
-        
-        // 对每个子标签获取相关帖子
-        for (const subTag of subTags) {
-          const tagText = subTag.replace('#', '');
-          const subTagPosts = await postsAPI.getPosts(undefined, undefined, tagText);
-          
-          // 将子标签帖子添加到结果中（避免重复）
-          subTagPosts.forEach((tagPost: { id: string }) => {
-            if (!allPosts.some(post => post.id === tagPost.id)) {
-              allPosts.push(tagPost);
-            }
-          });
-        }
-        
-        setPosts(allPosts as Array<{
-          id: string;
-          title: string;
-          content: string;
-          tags?: string[];
-          // 添加其他可能的帖子属性
-        }> || []);
+        setPosts(typedPosts)
+        setFilteredPosts(typedPosts)
       } catch (err) {
-        console.error('Error fetching posts:', err);
-        setError('无法加载帖子，请稍后再试');
+        console.error('Error fetching posts:', err)
+        setError(t('error.loadFailed'))
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
     }
 
-    fetchPosts();
-  }, [topic]);
+    fetchPosts()
+  }, [topic, t])
   
   // 获取主题对应的主标签
   const getTopicMainTag = (topicName: string) => {
@@ -248,9 +232,42 @@ export default function TopicDetail() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex min-h-screen">
+        <Sidebar />
+        <main className="flex-1 p-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="animate-pulse space-y-4">
+              <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+              <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            </div>
+          </div>
+        </main>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen">
+        <Sidebar />
+        <main className="flex-1 p-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 p-4 rounded-lg">
+              {t('error.loadFailed')}
+            </div>
+          </div>
+        </main>
+      </div>
+    )
+  }
+
   return (
     <div className="flex h-screen">
       <Sidebar />
+      <button onClick={toggleBackground} className="absolute top-4 right-4 p-2 bg-gray-200 dark:bg-gray-700 rounded">切换背景</button>
       
       <main className={`flex-1 p-8 overflow-y-auto bg-gradient-to-br from-white to-blue-50 dark:from-gray-900 dark:to-indigo-950 bg-opacity-80 dark:bg-opacity-80 backdrop-blur-sm`}>
         <div className="max-w-4xl mx-auto">
@@ -261,7 +278,7 @@ export default function TopicDetail() {
                 <ArrowLeft className="w-5 h-5 text-gray-700 dark:text-gray-300" />
               </Link>
               <h1 className={`text-3xl font-bold ${topicColor.text}`} style={{ borderColor: topicColor.border }}>
-                {topic}
+                {t(`topic.${topic}`)}
               </h1>
             </div>
             <button 
@@ -336,6 +353,36 @@ export default function TopicDetail() {
                 </div>
               </>
             )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+            <div className="md:col-span-2 space-y-4">
+              {filteredPosts.length === 0 ? (
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  {t('topic.noPosts')}
+                </div>
+              ) : (
+                filteredPosts.map((post) => (
+                  <Post key={post.id} {...post} />
+                ))
+              )}
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+                <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
+                  {t('topic.tags')}
+                </h2>
+                <TopicContent
+                  topic={topic}
+                  color={topicColor.border}
+                  onTagClick={setSelectedTag}
+                  selectedTag={selectedTag}
+                />
+              </div>
+
+              <TopicRecommendations />
+            </div>
           </div>
         </div>
       </main>

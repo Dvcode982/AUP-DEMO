@@ -1,8 +1,12 @@
-interface TopicCardProps {
+import { useLanguage } from '../contexts/LanguageContext';
+
+export interface TopicCardProps {
   topic: string;
   colors: {
     border: string;
     glow: string;
+    bg: string;
+    text: string;
   };
   sizeClass: string;
   onClick: () => void;
@@ -10,6 +14,7 @@ interface TopicCardProps {
 }
 
 export default function TopicCard({ topic, colors, sizeClass, onClick, onMouseEnter }: TopicCardProps) {
+  const { t } = useLanguage()
   return (
     <div
       onClick={onClick}
@@ -27,10 +32,10 @@ export default function TopicCard({ topic, colors, sizeClass, onClick, onMouseEn
       
       <div className="relative flex flex-col items-center justify-center h-full">
         <div className="text-center font-semibold text-[17px] text-gray-800 dark:text-gray-200 group-hover:scale-105 transition-transform">
-          {topic}
+          {t(`topic.${topic}`)}
         </div>
         <div className="mt-2 text-sm text-gray-500 dark:text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
-          点击进入讨论
+          {t('topic.clickToEnter')}
         </div>
       </div>
     </div>

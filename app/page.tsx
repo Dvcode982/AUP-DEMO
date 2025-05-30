@@ -55,11 +55,10 @@ export default function Home() {
   }
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="flex h-screen">
       <Sidebar />
-
-      <main className="flex-1 p-2 sm:p-3 lg:p-4 overflow-hidden">
-        <div className="w-full flex flex-col h-full">
+      <main className="flex-1 p-2 sm:p-3 lg:p-4 overflow-hidden relative">
+        <div className="w-full flex flex-col h-full relative z-10">
           <SearchBar onSearch={handleSearch} />
           
           <div className="flex gap-3 mt-3 h-full overflow-hidden">
@@ -72,8 +71,8 @@ export default function Home() {
                     onClick={() => setViewMode('all')}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                       viewMode === 'all'
-                        ? 'bg-blue-500 text-white shadow-md'
-                        : 'bg-white/80 dark:bg-gray-800/80 text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-800'
+                        ? 'bg-blue-500/90 text-white shadow-md'
+                        : 'bg-white/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 hover:bg-white/90 dark:hover:bg-gray-800/90'
                     }`}
                   >
                     <Grid3X3 className="w-4 h-4" />
@@ -83,8 +82,8 @@ export default function Home() {
                     onClick={() => setViewMode('aggregated')}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                       viewMode === 'aggregated'
-                        ? 'bg-blue-500 text-white shadow-md'
-                        : 'bg-white/80 dark:bg-gray-800/80 text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-800'
+                        ? 'bg-blue-500/90 text-white shadow-md'
+                        : 'bg-white/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 hover:bg-white/90 dark:hover:bg-gray-800/90'
                     }`}
                   >
                     <Sparkles className="w-4 h-4" />
@@ -94,10 +93,10 @@ export default function Home() {
               )}
 
               {/* 帖子网格 - 使用更紧密的布局 */}
-              <div className="overflow-y-auto bg-white/40 dark:bg-gray-800/40 backdrop-blur-sm rounded-lg p-2 sm:p-3 flex-1">
+              <div className="relative z-10">
                 {loading ? (
                   <div className="flex items-center justify-center h-full">
-                    <div className="text-center">
+                    <div className="text-center bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-lg p-4">
                       <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
                       <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">加载中...</p>
                     </div>
@@ -110,16 +109,18 @@ export default function Home() {
                   </div>
                 ) : (
                   <div className="flex items-center justify-center h-full">
-                    <p className="text-gray-500 dark:text-gray-400 text-sm">
-                      {viewMode === 'aggregated' ? '暂无推荐内容，多浏览一些帖子吧！' : '暂无论坛帖子'}
-                    </p>
+                    <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-lg p-4">
+                      <p className="text-gray-500 dark:text-gray-400 text-sm">
+                        {viewMode === 'aggregated' ? '暂无推荐内容，多浏览一些帖子吧！' : '暂无论坛帖子'}
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>
             </div>
 
             {/* 右侧推荐区 - 更紧凑 */}
-            <div className="w-72 hidden xl:block">
+            <div className="w-72 hidden xl:block relative z-10">
               <TopicRecommendations />
             </div>
           </div>
