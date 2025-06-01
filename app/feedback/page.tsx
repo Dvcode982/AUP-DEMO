@@ -4,11 +4,13 @@ import Sidebar from '../components/Sidebar'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 import { useBackground } from '../contexts/BackgroundContext'
+import { useLanguage } from '../contexts/LanguageContext'
 
 export default function Feedback() {
   const { theme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const { toggleBackground } = useBackground()
+  const { t } = useLanguage()
 
   // 防止 hydration 不匹配
   useEffect(() => {
@@ -39,35 +41,35 @@ export default function Feedback() {
     <div className="flex h-screen">
       <Sidebar />
       <button onClick={toggleBackground} className="absolute top-4 right-4 p-2 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all">
-        切换背景
+        {t('settings.background.toggle')}
       </button>
       
       <main className="flex-1 p-4 overflow-hidden">
         <div className="max-w-2xl mx-auto">
           <h1 className={`text-2xl font-bold mb-4 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>
-            反馈
+            {t('feedback.title')}
           </h1>
           <div className={`${themeClasses.card} rounded-lg shadow-sm p-4 backdrop-blur-sm`}>
             <form>
               <div className="mb-4">
                 <label className={`block text-sm font-medium ${themeClasses.label} mb-2`}>
-                  反馈类型
+                  {t('feedback.type')}
                 </label>
                 <select className={`mt-1 block w-full rounded-md border ${themeClasses.input} shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 backdrop-blur-sm`}>
-                  <option>功能建议</option>
-                  <option>问题报告</option>
-                  <option>其他</option>
+                  <option>{t('feedback.type.suggestion')}</option>
+                  <option>{t('feedback.type.bug')}</option>
+                  <option>{t('feedback.type.other')}</option>
                 </select>
               </div>
               
               <div className="mb-4">
                 <label className={`block text-sm font-medium ${themeClasses.label} mb-2`}>
-                  反馈内容
+                  {t('feedback.content')}
                 </label>
                 <textarea 
                   className={`mt-1 block w-full rounded-md border ${themeClasses.input} shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 backdrop-blur-sm`} 
                   rows={5} 
-                  placeholder="请详细描述您的反馈..."
+                  placeholder={t('feedback.content.placeholder')}
                 />
               </div>
 
@@ -75,7 +77,7 @@ export default function Feedback() {
                 type="submit" 
                 className="bg-blue-500/90 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-200 shadow-sm hover:shadow-md"
               >
-                提交反馈
+                {t('feedback.submit')}
               </button>
             </form>
           </div>

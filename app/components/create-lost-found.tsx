@@ -1,16 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import TextInput from './create-post/TextInput'
 import { lostAndFoundAPI } from '@/lib/api'
+import { useLanguage } from '@/app/contexts/LanguageContext'
 
 export default function CreateLostFound() {
   const router = useRouter()
   const [content, setContent] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const { t } = useLanguage()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -37,17 +39,17 @@ export default function CreateLostFound() {
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle>发布失物招领信息</CardTitle>
+        <CardTitle>{t('lostAndFound.publishInfoTitle')}</CardTitle>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">描述</label>
+            <label className="text-sm font-medium">{t('lostAndFound.descriptionLabel')}</label>
             <TextInput
               value={content}
               onChange={setContent}
               onEmojiSelect={(emoji) => setContent(prev => prev + emoji)}
-              placeholder="请详细描述物品特征、丢失/拾获地点和时间等信息..."
+              placeholder={t('lostAndFound.descriptionPlaceholder')}
             />
           </div>
         </CardContent>
@@ -57,7 +59,7 @@ export default function CreateLostFound() {
             className="w-full" 
             disabled={isSubmitting || !content.trim()}
           >
-            {isSubmitting ? '发布中...' : '发布信息'}
+            {isSubmitting ? t('lostAndFound.publishingButton') : t('lostAndFound.publishButton')}
           </Button>
         </CardFooter>
       </form>

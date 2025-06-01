@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react';
 import { FilterIcon, SearchIcon, PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface SearchBarProps {
-  onSearch?: (query: string, filters?: any) => void;
+  onSearch?: (query: string) => void;
 }
 
 const SearchBar = ({ onSearch }: SearchBarProps = {}) => {
@@ -14,6 +15,7 @@ const SearchBar = ({ onSearch }: SearchBarProps = {}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const pathname = usePathname();
+  const { t } = useLanguage();
   
   // 判断当前页面类型
   const isLostAndFound = pathname?.includes('lost-and-found');
@@ -53,7 +55,7 @@ const SearchBar = ({ onSearch }: SearchBarProps = {}) => {
         <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
         <input
           type="text"
-          placeholder={isLostAndFound ? "搜索失物招领..." : "搜索帖子..."}
+          placeholder={isLostAndFound ? t('search.lostAndFoundPlaceholder') : t('search.postsPlaceholder')}
           className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 bg-opacity-60 dark:bg-opacity-60 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-700 focus:border-blue-400 dark:focus:border-blue-600 transition-all duration-200"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}

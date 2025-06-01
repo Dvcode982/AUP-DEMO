@@ -1,6 +1,6 @@
 'use client'
 import Sidebar from "../components/Sidebar"
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useTheme } from 'next-themes'
 import { useBackground } from '../contexts/BackgroundContext'
@@ -11,12 +11,39 @@ export default function Settings() {
     const { isCustomBackground, toggleBackground } = useBackground()
     const [notifications, setNotifications] = useState(true)
     const [emailNotifications, setEmailNotifications] = useState(true)
-    const [fontSize, setFontSize] = useState('medium')
+    const [fontSize, setFontSize] = useState(() => {
+        // 初始化时从 localStorage 读取字体大小设置
+        if (typeof window !== 'undefined') {
+            const savedFontSize = localStorage.getItem('fontSize')
+            if (savedFontSize && ['small', 'medium', 'large'].includes(savedFontSize)) {
+                return savedFontSize
+            }
+        }
+        return 'medium'
+    })
     const [profileVisibility, setProfileVisibility] = useState('public')
     const [onlineStatus, setOnlineStatus] = useState(true)
     const [messagePermission, setMessagePermission] = useState('all')
     const [signatures, setSignatures] = useState(true)
     const [autoSave, setAutoSave] = useState(true)
+
+    // 应用字体大小设置
+    useEffect(() => {
+        const root = document.documentElement;
+        switch (fontSize) {
+            case 'small':
+                root.style.fontSize = '14px';
+                break;
+            case 'medium':
+                root.style.fontSize = '16px';
+                break;
+            case 'large':
+                root.style.fontSize = '18px';
+                break;
+        }
+        // 保存到 localStorage
+        localStorage.setItem('fontSize', fontSize)
+    }, [fontSize]);
 
     return (
         <div className="flex min-h-screen">
@@ -53,6 +80,22 @@ export default function Settings() {
                                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
                                 </label>
                             </div>
+                        </div>
+                    </section>
+
+                    {/* 字体大小设置 */}
+                    <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow transition-colors">
+                        <h2 className="text-xl font-semibold mb-4 dark:text-white">{t('settings.fontSize')}</h2>
+                        <div className="flex flex-col space-y-2">
+                            <select 
+                                value={fontSize}
+                                onChange={(e) => setFontSize(e.target.value)}
+                                className="w-full p-2 border rounded-lg bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                            >
+                                <option value="small">{t('settings.fontSize.small')}</option>
+                                <option value="medium">{t('settings.fontSize.medium')}</option>
+                                <option value="large">{t('settings.fontSize.large')}</option>
+                            </select>
                         </div>
                     </section>
 

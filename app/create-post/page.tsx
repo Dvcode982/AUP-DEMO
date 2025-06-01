@@ -1,13 +1,18 @@
+'use client'
+
 import Sidebar from '../components/Sidebar'
 import CreatePost from '../components/create-post'
+import { useLanguage } from '@/app/contexts/LanguageContext';
 
 export default function CreatePostPage() {
+  const { t } = useLanguage();
+
   return (
     <div className="flex h-screen bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800">
       <Sidebar />
       <main className="flex-1 p-4 overflow-hidden">
         <div className="max-w-2xl mx-auto">
-          <h1 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">创建新帖子</h1>
+          <h1 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">{t('nav.createPost')}</h1>
           <CreatePost />
         </div>
       </main>

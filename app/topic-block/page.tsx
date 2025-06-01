@@ -106,7 +106,7 @@ export default function TopicBlock() {
     <div className="flex h-screen">
       <Sidebar />
       <button onClick={toggleBackground} className="absolute top-4 right-4 p-2 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all">
-        切换背景
+        {t('settings.background.toggle')}
       </button>
       
       <main className="flex-1 flex flex-col p-4">
@@ -114,7 +114,7 @@ export default function TopicBlock() {
         <div className="mb-4">
           <input
             type="text"
-            placeholder="搜索主题..."
+            placeholder={t('topic.searchPlaceholder')}
             className="w-full p-3.5 bg-white/70 dark:bg-gray-800/70 text-gray-800 dark:text-gray-200 rounded-xl 
                    placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 
                    focus:ring-blue-500 border border-gray-200 dark:border-gray-700 text-sm 

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { X } from 'lucide-react'
+import { useLanguage } from '@/app/contexts/LanguageContext'
 
 interface MediaUploadProps {
   onFileSelect: (files: File[]) => void
@@ -10,6 +11,7 @@ interface MediaUploadProps {
 
 export default function MediaUpload({ onFileSelect }: MediaUploadProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const { t } = useLanguage()
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
@@ -41,7 +43,7 @@ export default function MediaUpload({ onFileSelect }: MediaUploadProps) {
         onChange={handleFileChange}
       />
       <Button asChild>
-        <label htmlFor="media-upload">上传图片或视频</label>
+        <label htmlFor="media-upload">{t('createPost.mediaUploadButton')}</label>
       </Button>
       <div className="grid grid-cols-3 gap-2">
         {selectedFiles.map((file, index) => (

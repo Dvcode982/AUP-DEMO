@@ -3,21 +3,19 @@
 import { useState, useEffect } from 'react'
 import Sidebar from '../components/Sidebar'
 import { User, Mail, BookOpen, Building, GraduationCap, Calendar, Pencil, Save, X } from 'lucide-react'
-import { useTheme } from 'next-themes'
 import { useAuth } from '../contexts/AuthContext'
-import { useRouter } from 'next/navigation'
 import ProtectedRoute from '../components/ProtectedRoute'
 import Image from 'next/image'
 import { usersAPI } from '@/lib/api'
 import toast from 'react-hot-toast'
+import { useLanguage } from '@/app/contexts/LanguageContext'
 
 export default function MyProfile() {
-  const { theme } = useTheme()
   const { user, updateUserProfile, isAuthenticated } = useAuth()
-  const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const { t } = useLanguage()
   
   // 编辑状态字段
   const [formData, setFormData] = useState({
@@ -58,7 +56,7 @@ export default function MyProfile() {
         })
       } catch (error) {
         console.error('Failed to fetch user profile:', error)
-        toast.error('获取用户资料失败')
+        toast.error(t('toast.fetchProfileFailure'))
       } finally {
         setLoading(false)
       }
@@ -100,11 +98,11 @@ export default function MyProfile() {
         role: updatedProfile.role
       })
       
-      toast.success('资料更新成功')
+      toast.success(t('toast.updateProfileSuccess'))
       setIsEditing(false)
     } catch (error) {
       console.error('Failed to update profile:', error)
-      toast.error('更新资料失败，请稍后重试')
+      toast.error(t('toast.updateProfileFailure'))
     } finally {
       setSaving(false)
     }
@@ -155,14 +153,14 @@ export default function MyProfile() {
           <div className="max-w-4xl mx-auto">
             {/* 页面标题 */}
             <div className="flex justify-between items-center mb-8">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">我的个人资料</h1>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('profile.title')}</h1>
               {!isEditing && (
                 <button 
                   onClick={() => setIsEditing(true)}
                   className="flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
                 >
                   <Pencil className="w-4 h-4" />
-                  编辑资料
+                  {t('profile.editButton')}
                 </button>
               )}
             </div>
@@ -195,7 +193,7 @@ export default function MyProfile() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          用户名
+                          {t('profile.usernameLabel')}
                         </label>
                         <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
                           <span className="px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
@@ -207,14 +205,14 @@ export default function MyProfile() {
                             className="block w-full px-3 py-2 border-0 focus:ring-0 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                             value={formData.username}
                             onChange={handleChange}
-                            placeholder="您的昵称"
+                            placeholder={t('profile.usernamePlaceholder')}
                           />
                         </div>
                       </div>
                       
                       <div className="space-y-2">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          邮箱（不可修改）
+                          {t('profile.emailLabelImmutable')}
                         </label>
                         <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden opacity-60">
                           <span className="px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
@@ -233,7 +231,7 @@ export default function MyProfile() {
                       
                       <div className="space-y-2">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          院系
+                          {t('profile.departmentLabel')}
                         </label>
                         <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
                           <span className="px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
@@ -245,14 +243,14 @@ export default function MyProfile() {
                             className="block w-full px-3 py-2 border-0 focus:ring-0 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                             value={formData.department}
                             onChange={handleChange}
-                            placeholder="您所在的院系"
+                            placeholder={t('profile.departmentPlaceholder')}
                           />
                         </div>
                       </div>
                       
                       <div className="space-y-2">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          年级
+                          {t('profile.gradeLabel')}
                         </label>
                         <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
                           <span className="px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
@@ -264,14 +262,14 @@ export default function MyProfile() {
                             className="block w-full px-3 py-2 border-0 focus:ring-0 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                             value={formData.grade}
                             onChange={handleChange}
-                            placeholder="例如：2024级"
+                            placeholder={t('profile.gradePlaceholder')}
                           />
                         </div>
                       </div>
                       
                       <div className="space-y-2">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          身份
+                          {t('profile.rolePlaceholder')}
                         </label>
                         <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
                           <span className="px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
@@ -283,14 +281,14 @@ export default function MyProfile() {
                             className="block w-full px-3 py-2 border-0 focus:ring-0 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                             value={formData.role}
                             onChange={handleChange}
-                            placeholder="例如：学生/教师"
+                            placeholder={t('profile.rolePlaceholder')}
                           />
                         </div>
                       </div>
                       
                       <div className="space-y-2 md:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          个人简介
+                          {t('profile.bioLabel')}
                         </label>
                         <div className="flex items-start border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
                           <span className="px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
@@ -302,7 +300,7 @@ export default function MyProfile() {
                             className="block w-full px-3 py-2 border-0 focus:ring-0 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                             value={formData.bio}
                             onChange={handleChange}
-                            placeholder="写一些关于您自己的介绍..."
+                            placeholder={t('profile.bioPlaceholder')}
                           ></textarea>
                         </div>
                       </div>
@@ -316,7 +314,7 @@ export default function MyProfile() {
                         disabled={saving}
                       >
                         <X className="w-4 h-4" />
-                        取消
+                        {t('profile.cancelButton')}
                       </button>
                       <button
                         type="submit"
@@ -324,7 +322,7 @@ export default function MyProfile() {
                         disabled={saving}
                       >
                         <Save className="w-4 h-4" />
-                        {saving ? '保存中...' : '保存修改'}
+                        {saving ? '保存中...' : t('profile.saveButton')}
                       </button>
                     </div>
                   </form>
@@ -345,7 +343,7 @@ export default function MyProfile() {
                       <div className="flex items-center space-x-3">
                         <Mail className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                         <div>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">邮箱</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{t('profile.emailLabel')}</p>
                           <p className="text-gray-900 dark:text-white">{formData.email || '未设置邮箱'}</p>
                         </div>
                       </div>
@@ -353,7 +351,7 @@ export default function MyProfile() {
                       <div className="flex items-center space-x-3">
                         <Building className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                         <div>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">院系</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{t('profile.departmentLabel')}</p>
                           <p className="text-gray-900 dark:text-white">{formData.department || '未设置院系'}</p>
                         </div>
                       </div>
@@ -361,7 +359,7 @@ export default function MyProfile() {
                       <div className="flex items-center space-x-3">
                         <Calendar className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                         <div>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">年级</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{t('profile.gradeLabel')}</p>
                           <p className="text-gray-900 dark:text-white">{formData.grade || '未设置年级'}</p>
                         </div>
                       </div>
@@ -369,7 +367,7 @@ export default function MyProfile() {
                     
                     {(formData.bio && formData.bio.length > 0) && (
                       <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">关于我</h3>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{t('profile.aboutMeTitle')}</h3>
                         <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">{formData.bio}</p>
                       </div>
                     )}

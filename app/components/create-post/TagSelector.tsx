@@ -4,16 +4,19 @@ import { useState, useEffect } from 'react'
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Tag } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useLanguage } from '@/app/contexts/LanguageContext'
 
 interface TagSelectorProps {
   selectedTags: string[]
   onTagsChange: (tags: string[]) => void
   topic?: string | null
+  addTagButtonText: string
 }
 
-export default function TagSelector({ selectedTags, onTagsChange, topic }: TagSelectorProps) {
+export default function TagSelector({ selectedTags, onTagsChange, topic, addTagButtonText }: TagSelectorProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [availableTags, setAvailableTags] = useState<string[]>([])
+  const { t } = useLanguage()
 
   // 根据主题获取可用标签
   useEffect(() => {
@@ -85,17 +88,17 @@ export default function TagSelector({ selectedTags, onTagsChange, topic }: TagSe
       <div className="flex items-center space-x-2">
         <Select onValueChange={handleTopicChange}>
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="选择主题分类" />
+            <SelectValue placeholder={t('createPost.selectCategoryPlaceholder')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="学术交流">学术交流</SelectItem>
-            <SelectItem value="资源分享">资源分享</SelectItem>
-            <SelectItem value="竞赛交流">竞赛交流</SelectItem>
-            <SelectItem value="校园生活">校园生活</SelectItem>
-            <SelectItem value="校园杂谈">校园杂谈</SelectItem>
-            <SelectItem value="技术交流">技术交流</SelectItem>
-            <SelectItem value="表白墙">表白墙</SelectItem>
-            <SelectItem value="就业兼职">就业兼职</SelectItem>
+            <SelectItem value="学术交流">{t('topic.学术交流')}</SelectItem>
+            <SelectItem value="资源分享">{t('topic.资源分享')}</SelectItem>
+            <SelectItem value="竞赛交流">{t('topic.竞赛交流')}</SelectItem>
+            <SelectItem value="校园生活">{t('topic.校园生活')}</SelectItem>
+            <SelectItem value="校园杂谈">{t('topic.校园杂谈')}</SelectItem>
+            <SelectItem value="技术交流">{t('topic.技术交流')}</SelectItem>
+            <SelectItem value="表白墙">{t('topic.表白墙')}</SelectItem>
+            <SelectItem value="就业兼职">{t('topic.就业兼职')}</SelectItem>
           </SelectContent>
         </Select>
 
@@ -106,7 +109,7 @@ export default function TagSelector({ selectedTags, onTagsChange, topic }: TagSe
               className="flex items-center space-x-1 px-3 py-2 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors"
             >
               <Tag size={16} />
-              <span>添加标签</span>
+              <span>{addTagButtonText}</span>
             </button>
           </PopoverTrigger>
           <PopoverContent className="w-64 p-2">
@@ -122,7 +125,7 @@ export default function TagSelector({ selectedTags, onTagsChange, topic }: TagSe
                       onClick={() => handleTagSelect(tag)}
                       className={`px-2 py-1 text-xs rounded-full transition-colors ${isSelected ? 'bg-blue-500 text-white' : 'bg-blue-100 text-blue-800 hover:bg-blue-200'}`}
                     >
-                      {tag}
+                      {t(`topic.${tag}` as keyof typeof t)}
                     </button>
                   );
                 })}
@@ -140,7 +143,7 @@ export default function TagSelector({ selectedTags, onTagsChange, topic }: TagSe
               key={index} 
               className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium flex items-center"
             >
-              #{tag}
+              {t(`topic.#${tag}` as keyof typeof t)}
               <button 
                 onClick={() => onTagsChange(selectedTags.filter(t => t !== tag))}
                 className="ml-1 text-blue-500 hover:text-blue-700"

@@ -8,12 +8,39 @@ import { useState, useEffect } from 'react'
 import { postsAPI, topicAggregationAPI } from '@/lib/api'
 import { useAuth } from './contexts/AuthContext'
 import { Sparkles, Grid3X3 } from 'lucide-react'
+import { useLanguage } from './contexts/LanguageContext'
+
+// 定义 Post 接口 (与 PostProps 匹配)
+interface PostData {
+  id: string | number;
+  author: string;
+  author_id?: string | number;
+  author_email?: string;
+  author_avatar?: string;
+  author_role?: string;
+  author_department?: string;
+  avatar?: string; // 兼容旧数据
+  content: string;
+  image?: string;
+  images?: string[]; // 支持多图片数组
+  time: string;
+  tags: string[];
+  isLostAndFound?: boolean;
+  isReturned?: boolean;
+  returnedTime?: string;
+  postType?: string; // 改为 string 类型
+  likes?: number;
+  comments?: number;
+  shares?: number;
+  category?: string;
+}
 
 export default function Home() {
-  const [posts, setPosts] = useState<any[]>([])
+  const [posts, setPosts] = useState<PostData[]>([])
   const [loading, setLoading] = useState(true)
   const [viewMode, setViewMode] = useState<'all' | 'aggregated'>('all')
   const { isAuthenticated } = useAuth()
+  const { t } = useLanguage()
 
   useEffect(() => {
     fetchPosts()
@@ -76,7 +103,7 @@ export default function Home() {
                     }`}
                   >
                     <Grid3X3 className="w-4 h-4" />
-                    全部帖子
+                    {t('viewMode.all')}
                   </button>
                   <button
                     onClick={() => setViewMode('aggregated')}
@@ -87,7 +114,7 @@ export default function Home() {
                     }`}
                   >
                     <Sparkles className="w-4 h-4" />
-                    为您推荐
+                    {t('viewMode.aggregated')}
                   </button>
                 </div>
               )}
@@ -98,7 +125,7 @@ export default function Home() {
                   <div className="flex items-center justify-center h-full">
                     <div className="text-center bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-lg p-4">
                       <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
-                      <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">加载中...</p>
+                      <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">{t('common.loading')}</p>
                     </div>
                   </div>
                 ) : posts.length > 0 ? (
@@ -111,7 +138,7 @@ export default function Home() {
                   <div className="flex items-center justify-center h-full">
                     <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-lg p-4">
                       <p className="text-gray-500 dark:text-gray-400 text-sm">
-                        {viewMode === 'aggregated' ? '暂无推荐内容，多浏览一些帖子吧！' : '暂无论坛帖子'}
+                        {viewMode === 'aggregated' ? t('post.noPostsRecommended') : t('post.noPosts')}
                       </p>
                     </div>
                   </div>

@@ -2,11 +2,11 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { Check, MessageCircle, Heart, Share2, MapPin, Calendar, User, Building, Tag } from 'lucide-react'
+import { Heart, MessageCircle, Share2, Check, MapPin } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { postsAPI, topicAggregationAPI } from '@/lib/api'
-import { useRouter } from 'next/navigation'
 import { useAuth } from '../contexts/AuthContext'
+import { useRouter } from 'next/navigation'
 import { useLanguage } from '../contexts/LanguageContext'
 
 export interface PostProps {
@@ -23,7 +23,6 @@ export interface PostProps {
   images?: string[] // 支持多图片数组
   time: string
   tags: string[]
-  isLostAndFound?: boolean
   isReturned?: boolean
   returnedTime?: string
   postType?: string // 改为 string 类型
@@ -33,26 +32,23 @@ export interface PostProps {
   category?: string
 }
 
-const Post = ({ 
-  id, 
-  author, 
-  author_id,
-  author_email,
+const Post = ({
+  id,
+  author,
   author_avatar,
+  avatar,
+  content,
+  image,
+  images = [],
+  time,
+  tags = [],
   author_role,
   author_department,
-  avatar, 
-  content, 
-  image, 
-  images = [], 
-  time, 
-  tags = [], 
-  isLostAndFound = false, 
-  isReturned = false, 
-  returnedTime, 
-  postType = 'forum', 
-  likes = 0, 
-  comments = 0, 
+  isReturned = false,
+  returnedTime,
+  postType = 'forum',
+  likes = 0,
+  comments = 0,
   shares = 0,
   category
 }: PostProps) => {
@@ -108,7 +104,7 @@ const Post = ({
       setLikeCount(response.likes);
       
       // 记录用户行为
-      if (response.liked) {
+      if (response.liked && postType === 'forum') { // 只在论坛帖子记录点赞行为
         await topicAggregationAPI.trackInteraction({
           postId: id.toString(),
           topic: category,
@@ -141,12 +137,14 @@ const Post = ({
       setShareCount(response.shares);
       
       // 记录用户行为
-      await topicAggregationAPI.trackInteraction({
-        postId: id.toString(),
-        topic: category,
-        tag: tags?.[0],
-        actionType: 'share'
-      });
+      if (postType === 'forum') { // 只在论坛帖子记录分享行为
+        await topicAggregationAPI.trackInteraction({
+          postId: id.toString(),
+          topic: category,
+          tag: tags?.[0],
+          actionType: 'share'
+        });
+      }
       
       // 复制链接到剪贴板
       const postUrl = `${window.location.origin}/post/${id}`
@@ -154,18 +152,19 @@ const Post = ({
       
       // 显示成功提示
       const toast = document.createElement('div')
-      toast.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50'
-      toast.textContent = '链接已复制到剪贴板'
+      toast.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in-up'
+      toast.textContent = t('post.shareSuccess')
       document.body.appendChild(toast)
       
       setTimeout(() => {
-        toast.remove()
+        toast.classList.add('animate-fade-out-down')
+        setTimeout(() => toast.remove(), 300)
       }, 2000)
     } catch (error) {
       console.error('Failed to share post:', error);
       // 如果是用户取消分享，不显示错误
       if (error instanceof Error && error.name !== 'AbortError') {
-        alert('分享失败，请稍后再试');
+        alert(t('post.shareFailed'));
       }
     } finally {
       setIsProcessing(false);
@@ -186,8 +185,17 @@ const Post = ({
     return roleStyles[role] || 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400';
   };
   
-  // 在组件内部处理 postType 的类型
-  const normalizedPostType = postType === 'lostAndFound' ? 'lostAndFound' : 'forum'
+  // 翻译角色文本
+  const translatedRole = (role?: string) => {
+    if (!role) return '';
+    switch(role) {
+      case '学生': return t('post.role.student');
+      case '教师': return t('post.role.teacher');
+      case '管理员': return t('post.role.admin');
+      case '校友': return t('post.role.alumnus');
+      default: return role;
+    }
+  };
   
   return (
     <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
@@ -195,9 +203,9 @@ const Post = ({
         {/* 作者信息 */}
         <div className="flex items-center mb-3">
           <div className="relative">
-            {author_avatar || avatar ? (
+            {displayAvatar ? (
               <Image
-                src={author_avatar || avatar || '/placeholder.svg?height=40&width=40'}
+                src={displayAvatar || '/placeholder.svg?height=40&width=40'}
                 alt={author}
                 width={40}
                 height={40}
@@ -209,8 +217,8 @@ const Post = ({
               </div>
             )}
             {author_role && (
-              <span className="absolute -bottom-1 -right-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full">
-                {author_role}
+              <span className={`absolute -bottom-1 -right-1 text-white text-xs px-1.5 py-0.5 rounded-full ${getRoleBadgeStyle(author_role)}`}>
+                {translatedRole(author_role)}
               </span>
             )}
           </div>
@@ -248,7 +256,7 @@ const Post = ({
               className="object-cover"
             />
             {hasMultipleImages && (
-              <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
+              <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-1.5 py-0.5 rounded">
                 +{additionalImagesCount}
               </div>
             )}
@@ -256,49 +264,41 @@ const Post = ({
         )}
 
         {/* 标签 */}
-        {tags && tags.length > 0 && (
+        {tags && tags.length > 0 && postType !== 'lostAndFound' && (
           <div className="flex flex-wrap gap-2 mb-3">
-            {tags.map((tag, index) => (
-              <span
-                key={index}
-                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
-              >
-                <Tag className="w-3 h-3 mr-1" />
-                {tag}
+            {tags.map(tag => (
+              <span key={tag} className="text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 px-2.5 py-0.5 rounded-full">
+                #{tag}
               </span>
             ))}
           </div>
         )}
 
-        {/* 互动按钮 */}
-        <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-700">
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={handleLike}
-              disabled={isProcessing}
-              className={`flex items-center space-x-1 text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors ${
-                isLiked ? 'text-blue-500 dark:text-blue-400' : ''
-              }`}
-            >
-              <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
-              <span>{likeCount}</span>
-            </button>
-            <Link
-              href={`/post/${id}`}
-              className="flex items-center space-x-1 text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
-            >
-              <MessageCircle className="w-5 h-5" />
-              <span>{comments}</span>
-            </Link>
-            <button
-              onClick={handleShare}
-              disabled={isProcessing}
-              className="flex items-center space-x-1 text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
-            >
-              <Share2 className="w-5 h-5" />
-              <span>{shareCount}</span>
-            </button>
+        {/* 失物招领特定信息 */}
+        {postType === 'lostAndFound' && (
+          <div className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+            {isReturned ? (
+              <p className="flex items-center text-green-600 dark:text-green-400"><Check className="w-4 h-4 mr-1" /> {t('post.returned')} {returnedTime}</p>
+            ) : (
+              <p className="flex items-center text-red-600 dark:text-red-400"><MapPin className="w-4 h-4 mr-1" /> {t('post.notReturned')}</p>
+            )}
           </div>
+        )}
+
+        {/* 互动按钮 */}
+        <div className="flex items-center justify-between text-gray-500 dark:text-gray-400">
+          <button onClick={handleLike} className={`flex items-center space-x-1 transition-colors ${isLiked ? 'text-red-500' : 'hover:text-red-500'}`}>
+            <Heart className={`w-4 h-4 ${isLiked ? 'fill-red-500' : ''}`} />
+            <span>{likeCount}</span>
+          </button>
+          <Link href={`/post/${id}#comments`} className="flex items-center space-x-1 hover:text-blue-500 transition-colors">
+            <MessageCircle className="w-4 h-4" />
+            <span>{comments}</span>
+          </Link>
+          <button onClick={handleShare} className="flex items-center space-x-1 hover:text-green-500 transition-colors">
+            <Share2 className="w-4 h-4" />
+            <span>{shareCount}</span>
+          </button>
         </div>
       </div>
     </div>

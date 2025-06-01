@@ -110,25 +110,10 @@ export default function TopicDetail() {
     const fetchPosts = async () => {
       try {
         setLoading(true)
-        const allPosts = await postsAPI.getPosts(undefined, topic)
+        const allPosts: PostProps[] = await postsAPI.getPosts(undefined, topic) as PostProps[];
         
-        // 确保所有必需的字段都存在，并设置正确的类型
-        const typedPosts: PostProps[] = (allPosts || []).map((post: any) => ({
-          ...post,
-          postType: post.postType || 'forum',
-          likes: Number(post.likes) || 0,
-          comments: Number(post.comments) || 0,
-          shares: Number(post.shares) || 0,
-          tags: Array.isArray(post.tags) ? post.tags : [],
-          images: Array.isArray(post.images) ? post.images : [],
-          author_avatar: post.author_avatar || post.avatar || '',
-          author_role: post.author_role || '',
-          author_department: post.author_department || '',
-          category: topic
-        }))
-        
-        setPosts(typedPosts)
-        setFilteredPosts(typedPosts)
+        setPosts(allPosts || [])
+        setFilteredPosts(allPosts || [])
       } catch (err) {
         console.error('Error fetching posts:', err)
         setError(t('error.loadFailed'))
@@ -140,63 +125,6 @@ export default function TopicDetail() {
     fetchPosts()
   }, [topic, t])
   
-  // 获取主题对应的主标签
-  const getTopicMainTag = (topicName: string) => {
-    const tagMap: { [key: string]: string } = {
-      '学术交流': '学术',
-      '资源分享': '资源',
-      '竞赛交流': '竞赛',
-      '校园生活': '校园',
-      '校园杂谈': '杂谈',
-      '技术交流': '技术',
-      '表白墙': '表白',
-      '就业兼职': '就业'
-    };
-    return tagMap[topicName] || topicName;
-  };
-  
-  // 获取主题对应的子标签列表
-  const getTopicSubTags = (topicName: string) => {
-    const tagMap: { [key: string]: string[] } = {
-      '学术交流': [
-        '#计导坛', '#数分坛', '#英语坛', '#线代坛', 
-        '#网导坛', '#信通坛', '#心导坛', '#数学坛', 
-        '#物理坛', '#生物学坛', '#地质学坛', '#气象学坛', 
-        '#经济学坛', '#政治学坛', '#社会学坛', '#量子力学坛', 
-        '#机械工程坛', '#土木工程坛', '#电气工程坛'
-      ],
-      '资源分享': [
-        '#电子书籍', '#视频资源', '#学习资料', '#考试题库',
-        '#课件分享', '#软件工具', '#学习笔记', '#实验资料'
-      ],
-      '竞赛交流': [
-        '#数学建模', '#程序设计', '#创新创业', '#学科竞赛',
-        '#挑战杯', '#创青春', '#互联网+'
-      ],
-      '校园生活': [
-        '#美食推荐', '#社团活动', '#校园风景', '#运动健身',
-        '#宿舍生活', '#校园趣事', '#学生会', '#文艺活动'
-      ],
-      '校园杂谈': [
-        '#校园新闻', '#活动通知', '#失物招领', '#二手交易',
-        '#闲聊灌水', '#情感交流', '#校园趣闻'
-      ],
-      '技术交流': [
-        '#编程开发', '#人工智能', '#网络技术', '#硬件维修',
-        '#数据分析', '#云计算', '#区块链', '#物联网'
-      ],
-      '表白墙': [
-        '#表白专区', '#脱单攻略', '#情感故事', '#暗恋专栏',
-        '#恋爱相談', '#心动瞬间'
-      ],
-      '就业兼职': [
-        '#实习信息', '#校招信息', '#求职经验', '#简历指导',
-        '#面试技巧', '#职业规划', '#兼职信息'
-      ]
-    };
-    return tagMap[topicName] || [];
-  };
-  
   // 当选中标签变化时，重新获取帖子
   useEffect(() => {
     async function fetchPostsByTag() {
@@ -206,11 +134,11 @@ export default function TopicDetail() {
         setLoading(true);
         const tagText = selectedTag.replace('#', '');
         // 使用API获取特定标签的帖子
-        const data = await postsAPI.getPosts(undefined, topic, tagText);
+        const data: PostProps[] = await postsAPI.getPosts(undefined, topic, tagText) as PostProps[];
         setFilteredPosts(data || []);
       } catch (err) {
         console.error('Error fetching posts by tag:', err);
-        setError('无法加载标签相关帖子，请稍后再试');
+        setError(t('error.loadFailed'));
       } finally {
         setLoading(false);
       }
@@ -286,7 +214,7 @@ export default function TopicDetail() {
               className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 bg-opacity-90 dark:bg-opacity-90 rounded-lg shadow hover:shadow-md transition-all hover:-translate-y-1 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200"
             >
               <Filter className="w-4 h-4" />
-              <span>筛选标签</span>
+              <span>{t('topic.filterTagsButton')}</span>
             </button>
           </div>
           
@@ -294,13 +222,13 @@ export default function TopicDetail() {
           {showTagFilter && (
             <div className="mb-4 bg-white dark:bg-gray-800 bg-opacity-80 dark:bg-opacity-80 backdrop-blur-sm rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
               <div className="mb-2 text-sm text-gray-600 dark:text-gray-400 flex items-center justify-between">
-                <span>选择标签进行筛选</span>
+                <span>{t('topic.selectTagToFilter')}</span>
                 {selectedTag && (
                   <button 
                     onClick={() => setSelectedTag(null)}
                     className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
                   >
-                    清除筛选
+                    {t('topic.clearFilterButton')}
                   </button>
                 )}
               </div>
@@ -326,18 +254,18 @@ export default function TopicDetail() {
             ) : filteredPosts.length === 0 ? (
               <div className="text-center p-16 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-dashed border-gray-300 dark:border-gray-700">
                 <p className="text-lg mb-4 text-gray-700 dark:text-gray-300">
-                  {selectedTag ? `没有包含标签 ${selectedTag} 的帖子` : "这个主题还没有任何帖子"}
+                  {selectedTag ? t('topic.noPostsWithTag', { tag: selectedTag }) : t('topic.noPostsInTopic')}
                 </p>
                 <p className="text-gray-500 dark:text-gray-400">
-                  {selectedTag ? "尝试选择其他标签" : "敬请期待！"}
+                  {selectedTag ? t('topic.selectTagToFilter') : t('topic.noPosts')}
                 </p>
               </div>
             ) : (
               <>
                 {selectedTag && (
                   <div className="mb-4 p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-sm text-blue-800 dark:text-blue-300 flex items-center justify-between">
-                    <span>当前筛选: {selectedTag}</span>
-                    <span className="text-xs">找到 {filteredPosts.length} 个结果</span>
+                    <span>{t('topic.currentFilter', { tag: selectedTag })}</span>
+                    <span className="text-xs">{t('topic.resultsFound', { count: filteredPosts.length })}</span>
                   </div>
                 )}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 140px)' }}>  
@@ -371,7 +299,7 @@ export default function TopicDetail() {
             <div className="space-y-4">
               <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
                 <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
-                  {t('topic.tags')}
+                  {t('recommendations.tagsTitle')}
                 </h2>
                 <TopicContent
                   topic={topic}

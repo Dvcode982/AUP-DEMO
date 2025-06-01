@@ -1,3 +1,5 @@
+import { useLanguage } from '../contexts/LanguageContext';
+
 interface TopicContentProps {
   topic: string;
   color: string;
@@ -6,6 +8,7 @@ interface TopicContentProps {
 }
 
 export default function TopicContent({ topic, color, onTagClick, selectedTag }: TopicContentProps) {
+  const { t } = useLanguage();
   const adjustColor = (color: string) => {
     color = color.trim();
     
@@ -84,7 +87,7 @@ export default function TopicContent({ topic, color, onTagClick, selectedTag }: 
   return (
     <>
       <div className="text-lg font-bold mb-4" style={{ color: adjustColor(color) }}>
-        {topic}
+        {t(`topic.${topic}`)}
       </div>
       <div className="grid grid-cols-2 gap-x-6 gap-y-4">
         {getTopicTags(topic).map((tag) => {
@@ -114,7 +117,7 @@ export default function TopicContent({ topic, color, onTagClick, selectedTag }: 
                 borderRadius: isSelected ? '9999px' : '0',
               } as React.CSSProperties}
             >
-              <span className="relative z-10">{tag}</span>
+              <span className="relative z-10">{t(`topic.${tag}`)}</span>
               <svg 
                 className={`w-3 h-3 transition-all duration-300 
                            transform group-hover:translate-x-1 
