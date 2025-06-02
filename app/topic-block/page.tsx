@@ -131,7 +131,7 @@ export default function TopicBlock() {
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 z-20 mt-6 overflow-hidden"></div>
           </div>
         
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 flex-auto relative z-10 flex-grow p-4 pt-12 overflow-y-auto" style={{maxHeight: 'calc(100vh - 140px)'}}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 flex-auto relative z-10 flex-grow p-4 pt-12 custom-scrollbar">
             {topicCards.map(({ topic, sizeClass }) => {
               if (topic === '主题分类') {
                 return (

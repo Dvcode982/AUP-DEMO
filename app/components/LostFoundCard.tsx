@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { Check, MapPin, Calendar, MessageCircle, Share2 } from 'lucide-react'
 import { useState } from 'react'
 import { lostAndFoundAPI } from '@/lib/api'
+import { useLanguage } from '@/app/contexts/LanguageContext'
 
 interface LostFoundCardProps {
   id: string | number
@@ -101,6 +102,8 @@ const LostFoundCard = ({
     }
   };
 
+  const { t } = useLanguage();
+
   return (
     <Link href={`/lost-and-found/${id}`} className="block w-full h-full">
       <div className="bg-white dark:bg-gray-800 bg-opacity-80 dark:bg-opacity-80 backdrop-blur-sm rounded-lg shadow-sm overflow-hidden hover-lift relative border border-gray-100 dark:border-gray-700 h-full flex flex-col group card-dynamic-height transition-all duration-300 hover:shadow-md">
@@ -109,10 +112,10 @@ const LostFoundCard = ({
           {isReturned ? (
             <>
               <Check className="text-green-500 mr-1 flex-shrink-0" size={16} />
-              <span className="text-xs text-green-500 truncate">已找到/已归还 {returnedTime && `(${returnedTime})`}</span>
+              <span className="text-xs text-green-500 truncate">{t('post.status.returned', { returnedTime: returnedTime ? `(${returnedTime})` : '' })}</span>
             </>
           ) : (
-            <span className="text-xs text-red-500 truncate">未找到/未归还</span>
+            <span className="text-xs text-red-500 truncate">{t('post.status.notFound')}</span>
           )}
         </div>
 
@@ -185,7 +188,7 @@ const LostFoundCard = ({
           <div className="flex flex-wrap gap-2 mb-3 overflow-hidden">
             {tags.map((tag, index) => (
               <span key={index} className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full text-xs font-medium truncate max-w-full">
-                {tag}
+                {t(`topic.#${tag}`, { tag: tag })}
               </span>
             ))}
           </div>
@@ -197,14 +200,14 @@ const LostFoundCard = ({
             </div>
             <div className="flex items-center space-x-1">
               <MessageCircle size={16} />
-              <span className="text-xs">{comments > 0 ? comments : "评论"}</span>
+              <span className="text-xs">{comments > 0 ? comments : t('lostAndFoundCard.commentCount')}</span>
             </div>
             <div 
               className="flex items-center space-x-1 hover:text-blue-500 transition-colors cursor-pointer"
               onClick={handleShare}
             >
               <Share2 size={16} />
-              <span className="text-xs">{shareCount > 0 ? shareCount : "分享"}</span>
+              <span className="text-xs">{shareCount > 0 ? shareCount : t('lostAndFoundCard.shareCount')}</span>
             </div>
           </div>
         </div>

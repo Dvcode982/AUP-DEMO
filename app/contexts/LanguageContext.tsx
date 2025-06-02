@@ -30,13 +30,13 @@ const translations = {
     'common.search': '搜索',
     'common.submit': '提交',
     'common.back': '返回',
+    'common.status': '状态',
     
     // 导航
     'nav.home': '论坛',
     'nav.topic': '主题板块',
     'nav.lostAndFound': '失物找寻',
     'nav.messages': '坪友列表',
-    'nav.friends': '寻找坪友',
     'nav.settings': '设置',
     'nav.feedback': '反馈',
     'nav.login': '登录',
@@ -242,13 +242,23 @@ const translations = {
     'post.shareFailed': '分享失败，请稍后再试',
     'post.returned': '已归还',
     'post.notReturned': '未归还',
+    'post.author': '作者',
+    'post.relatedPosts': '相关推荐',
+    'post.comingSoon': '敬请期待',
+    'post.status.lostAndFound': '失物招领中',
+    'lostAndFound.backToList': '返回失物招领列表',
+    'post.status.notFound': '未找到/未归还',
+    'lostAndFound.writeComment': '写下你的评论...',
+    'lostAndFound.submitComment': '提交评论',
+    'lostAndFound.submittingComment': '提交中...',
+    'lostAndFoundCard.commentCount': '评论',
+    'lostAndFoundCard.shareCount': '分享',
     
     // 错误信息
     'error.network': '网络错误，请检查网络连接',
     'error.server': '服务器错误，请稍后重试',
     'error.unauthorized': '请先登录',
     'error.forbidden': '没有权限',
-    'error.notFound': '未找到',
     'error.unknown': '未知错误',
     
     // 浮动动作按钮 (FAB)
@@ -295,6 +305,17 @@ const translations = {
     'lostAndFound.publishButton': '发布信息',
     'lostAndFound.descriptionPlaceholder': '请详细描述物品特征、丢失/拾获地点和时间等信息...',
     'lostAndFound.publishingButton': '发布中...',
+    // Added for Lost and Found tags
+    'tags.lostAndFound': {
+      en: 'Lost and Found',
+      zh: '失物招领',
+      ja: '遺失物',
+    },
+    'tags.genericTag': {
+      en: '{tag}',
+      zh: '{tag}',
+      ja: '{tag}',
+    },
   },
   en: {
     // Common
@@ -309,13 +330,13 @@ const translations = {
     'common.search': 'Search',
     'common.submit': 'Submit',
     'common.back': 'Back',
+    'common.status': 'Status',
     
     // Navigation
     'nav.home': 'Forum',
     'nav.topic': 'Topics',
     'nav.lostAndFound': 'Lost & Found',
     'nav.messages': 'Messages',
-    'nav.friends': 'Find Friends',
     'nav.settings': 'Settings',
     'nav.feedback': 'Feedback',
     'nav.login': 'Login',
@@ -521,6 +542,17 @@ const translations = {
     'post.shareFailed': 'Failed to share, please try again later',
     'post.returned': 'Returned',
     'post.notReturned': 'Not Returned',
+    'post.author': 'Author',
+    'post.relatedPosts': 'Related Posts',
+    'post.comingSoon': 'Coming Soon',
+    'post.status.lostAndFound': 'Lost and Found in progress',
+    'lostAndFound.backToList': 'Back to Lost and Found List',
+    'post.status.notFound': 'Not Found/Not Returned',
+    'lostAndFound.writeComment': 'Write your comment...',
+    'lostAndFound.submitComment': 'Submit Comment',
+    'lostAndFound.submittingComment': 'Submitting...',
+    'lostAndFoundCard.commentCount': 'Comments',
+    'lostAndFoundCard.shareCount': 'Shares',
     
     // Error Messages
     'error.network': 'Network error, please check your connection',
@@ -574,6 +606,17 @@ const translations = {
     'lostAndFound.publishButton': 'Publish Info',
     'lostAndFound.descriptionPlaceholder': 'Please describe item features, location and time of loss/finding, etc...',
     'lostAndFound.publishingButton': 'Publishing...',
+    // Added for Lost and Found tags
+    'tags.lostAndFound': {
+      en: 'Lost and Found',
+      zh: '失物招领',
+      ja: '遺失物',
+    },
+    'tags.genericTag': {
+      en: '{tag}',
+      zh: '{tag}',
+      ja: '{tag}',
+    },
   },
   ja: {
     // 共通
@@ -588,13 +631,13 @@ const translations = {
     'common.search': '検索',
     'common.submit': '送信',
     'common.back': '戻る',
+    'common.status': '状態',
     
     // ナビゲーション
     'nav.home': 'フォーラム',
     'nav.topic': 'トピック',
     'nav.lostAndFound': '落とし物',
     'nav.messages': 'メッセージ',
-    'nav.friends': '坪友を探す',
     'nav.settings': '設定',
     'nav.feedback': 'フィードバック',
     'nav.login': 'ログイン',
@@ -691,55 +734,25 @@ const translations = {
     'recommendations.noContent': '閲覧や操作を続けると、関心のあるコンテンツが表示されます',
     
     // 学術交流タグ
-    'topic.#計算機入門掲示板': '#計算機入門掲示板',
+    'topic.#计算机入门掲示板': '#計算機入門掲示板',
     'topic.#数学分析掲示板': '#数学分析掲示板',
     'topic.#英語掲示板': '#英語掲示板',
-    'topic.#線形代数掲示板': '#線形代数掲示板',
-    'topic.#ネットワークガイド掲示板': '#ネットワークガイド掲示板',
-    'topic.#情報通信掲示板': '#情報通信掲示板',
+    'topic.#线性代数掲示板': '#線形代数掲示板',
+    'topic.#网络导航掲示板': '#ネットワークガイド掲示板',
+    'topic.#信息通信掲示板': '#情報通信掲示板',
     'topic.#心理学掲示板': '#心理学掲示板',
     'topic.#数学掲示板': '#数学掲示板',
     'topic.#物理学掲示板': '#物理学掲示板',
     'topic.#生物学掲示板': '#生物学掲示板',
-    'topic.#地質学掲示板': '#地質学掲示板',
-    'topic.#気象学掲示板': '#気象学掲示板',
-    'topic.#経済学掲示板': '#経済学掲示板',
+    'topic.#地质学掲示板': '#地質学掲示板',
+    'topic.#气象学掲示板': '#気象学掲示板',
+    'topic.#经济学掲示板': '#経済学掲示板',
     'topic.#政治学掲示板': '#政治学掲示板',
     'topic.#社会学掲示板': '#社会学掲示板',
     'topic.#量子力学掲示板': '#量子力学掲示板',
-    'topic.#機械工学掲示板': '#機械工学掲示板',
-    'topic.#土木工学掲示板': '#土木工学掲示板',
-    'topic.#電気工学掲示板': '#電気工学掲示板',
-    
-    // リソース共有タグ
-    'topic.#電子書籍': '#電子書籍',
-    'topic.#動画リソース': '#動画リソース',
-    'topic.#学習資料': '#学習資料',
-    'topic.#試験問題集': '#試験問題集',
-    'topic.#授業資料共有': '#授業資料共有',
-    'topic.#ソフトウェアツール': '#ソフトウェアツール',
-    'topic.#学習ノート': '#学習ノート',
-    'topic.#実験資料': '#実験資料',
-    
-    'topic.#计导坛': '#計算機入門掲示板',
-    'topic.#数分坛': '#数学分析掲示板',
-    'topic.#英语坛': '#英語掲示板',
-    'topic.#线代坛': '#線形代数掲示板',
-    'topic.#网导坛': '#ネットワークガイド掲示板',
-    'topic.#信通坛': '#情報通信掲示板',
-    'topic.#心导坛': '#心理学掲示板',
-    'topic.#数学坛': '#数学掲示板',
-    'topic.#物理坛': '#物理学掲示板',
-    'topic.#生物学坛': '#生物学掲示板',
-    'topic.#地质学坛': '#地質学掲示板',
-    'topic.#气象学坛': '#気象学掲示板',
-    'topic.#经济学坛': '#経済学掲示板',
-    'topic.#政治学坛': '#政治学掲示板',
-    'topic.#社会学坛': '#社会学掲示板',
-    'topic.#量子力学坛': '#量子力学掲示板',
-    'topic.#机械工程坛': '#機械工学掲示板',
-    'topic.#土木工程坛': '#土木工学掲示板',
-    'topic.#电气工程坛': '#電気工学掲示板',
+    'topic.#机械工程掲示板': '#機械工学掲示板',
+    'topic.#土木工程掲示板': '#土木工学掲示板',
+    'topic.#电气工程掲示板': '#電気工学掲示板',
     
     // リソース共有タグ
     'topic.#电子书籍': '#電子書籍',
@@ -828,6 +841,19 @@ const translations = {
     'post.role.alumnus': '校友',
     'post.shareSuccess': 'リンクをクリップボードにコピーしました',
     'post.shareFailed': '共有できませんでした。後でもう一度お試しください',
+    'post.returned': 'Returned',
+    'post.notReturned': 'Not Returned',
+    'post.author': '作者',
+    'post.relatedPosts': '関連する投稿',
+    'post.comingSoon': '今後の予定',
+    'post.status.lostAndFound': '遺失物捜索中',
+    'lostAndFound.backToList': '落とし物リストに戻る',
+    'post.status.notFound': '未発見/未返還',
+    'lostAndFound.writeComment': 'コメントを書く...',
+    'lostAndFound.submitComment': 'コメントを送信',
+    'lostAndFound.submittingComment': '送信中...',
+    'lostAndFoundCard.commentCount': 'コメント',
+    'lostAndFoundCard.shareCount': '共有',
     
     // エラーメッセージ
     'error.network': 'ネットワークエラー、接続を確認してください',
@@ -881,6 +907,17 @@ const translations = {
     'lostAndFound.publishButton': '情報投稿',
     'lostAndFound.descriptionPlaceholder': '物品の特徴、紛失・拾得場所・時間などを詳しく入力してください...',
     'lostAndFound.publishingButton': '投稿中...',
+    // Added for Lost and Found tags
+    'tags.lostAndFound': {
+      en: 'Lost and Found',
+      zh: '失物招领',
+      ja: '遺失物',
+    },
+    'tags.genericTag': {
+      en: '{tag}',
+      zh: '{tag}',
+      ja: '{tag}',
+    },
   }
 }
 
@@ -906,23 +943,30 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   // 翻译函数
   const t = (key: string, params?: { [key: string]: string | number }): string => {
-    const translation = translations[language][key as keyof typeof translations[typeof language]] || key;
+    const translation = translations[language]?.[key as keyof typeof translations[typeof language]] || key;
+
     if (params) {
       return Object.keys(params).reduce((acc, paramKey) => {
         const placeholder = `{${paramKey}}`;
         const value = params[paramKey];
         return acc.replace(new RegExp(placeholder, 'g'), String(value));
-      }, translation);
+      }, translation as string);
     }
-    return translation;
+    return translation as string;
   }
 
   if (!mounted) {
     return null
   }
 
+  const value = {
+    language,
+    setLanguage: handleSetLanguage,
+    t,
+  };
+
   return (
-    <LanguageContext.Provider value={{ language, setLanguage: handleSetLanguage, t }}>
+    <LanguageContext.Provider value={value}>
       {children}
     </LanguageContext.Provider>
   )

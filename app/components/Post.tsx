@@ -268,7 +268,7 @@ const Post = ({
           <div className="flex flex-wrap gap-2 mb-3">
             {tags.map(tag => (
               <span key={tag} className="text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 px-2.5 py-0.5 rounded-full">
-                #{tag}
+                {t(`topic.#${tag}`, { tag: tag })}
               </span>
             ))}
           </div>

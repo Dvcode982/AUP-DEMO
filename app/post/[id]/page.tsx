@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Heart, MessageCircle, Share2, ArrowLeft, Clock, User, Send, Tag, Building } from 'lucide-react'
+import { Heart, MessageCircle, Share2, ArrowLeft, Clock, User, Send, Tag, Building, Check } from 'lucide-react'
 import { postsAPI, topicAggregationAPI } from '@/lib/api'
 import { useAuth } from '@/app/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
@@ -29,6 +29,9 @@ interface PostData {
   likes?: number
   shares?: number
   comments?: number
+  isLostAndFound?: boolean
+  isReturned?: boolean
+  returnedTime?: string
 }
 
 interface CommentData {
@@ -292,6 +295,14 @@ export default function PostPage() {
                       </div>
                     </div>
                   </div>
+                  {post.isLostAndFound && (
+                    <div className="text-sm text-green-600 dark:text-green-400 flex items-center">
+                      <Check className="w-4 h-4 mr-1" />
+                      {post.isReturned 
+                        ? t('post.status.returned', { returnedTime: post.returnedTime || '' })
+                        : t('post.status.lostAndFound')}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -322,7 +333,7 @@ export default function PostPage() {
                         className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
                       >
                         <Tag className="w-3 h-3 mr-1" />
-                        {tag}
+                        {t(`topic.#${tag}`, { tag: tag })}
                       </span>
                     ))}
                   </div>

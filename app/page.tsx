@@ -120,29 +120,31 @@ export default function Home() {
               )}
 
               {/* 帖子网格 - 使用更紧密的布局 */}
-              <div className="relative z-10">
-                {loading ? (
-                  <div className="flex items-center justify-center h-full">
-                    <div className="text-center bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-lg p-4">
-                      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
-                      <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">{t('common.loading')}</p>
+              <div className="flex-1 relative">
+                <div className="relative z-10">
+                  {loading ? (
+                    <div className="flex items-center justify-center h-full">
+                      <div className="text-center bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-lg p-4">
+                        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+                        <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">{t('common.loading')}</p>
+                      </div>
                     </div>
-                  </div>
-                ) : posts.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-3 auto-rows-max">
-                    {posts.map(post => (
-                      <Post key={post.id} {...post} />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-lg p-4">
-                      <p className="text-gray-500 dark:text-gray-400 text-sm">
-                        {viewMode === 'aggregated' ? t('post.noPostsRecommended') : t('post.noPosts')}
-                      </p>
+                  ) : posts.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-3 auto-rows-max custom-scrollbar">
+                      {posts.map(post => (
+                        <Post key={post.id} {...post} />
+                      ))}
                     </div>
-                  </div>
-                )}
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-lg p-4">
+                        <p className="text-gray-500 dark:text-gray-400 text-sm">
+                          {viewMode === 'aggregated' ? t('post.noPostsRecommended') : t('post.noPosts')}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 

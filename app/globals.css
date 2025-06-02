@@ -145,7 +145,23 @@
     animation: fadeInUp 0.5s ease-out;
   }
   
+  /* 滚动容器基础样式 */
+  .scroll-container {
+    @apply overflow-y-auto overflow-x-hidden;
+    height: calc(100vh - 140px);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.05);
+  }
+  
+  .dark .scroll-container {
+    scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.05);
+  }
+  
   /* 优化滚动条样式 */
+  .custom-scrollbar {
+    @apply scroll-container;
+  }
+  
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
   }

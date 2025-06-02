@@ -197,7 +197,7 @@ export default function TopicDetail() {
       <Sidebar />
       <button onClick={toggleBackground} className="absolute top-4 right-4 p-2 bg-gray-200 dark:bg-gray-700 rounded">切换背景</button>
       
-      <main className={`flex-1 p-8 overflow-y-auto bg-gradient-to-br from-white to-blue-50 dark:from-gray-900 dark:to-indigo-950 bg-opacity-80 dark:bg-opacity-80 backdrop-blur-sm`}>
+      <main className={`flex-1 p-8 bg-gradient-to-br from-white to-blue-50 dark:from-gray-900 dark:to-indigo-950 bg-opacity-80 dark:bg-opacity-80 backdrop-blur-sm`}>
         <div className="max-w-4xl mx-auto">
           {/* 标题区域 */}
           <div className="mb-4 flex items-center justify-between bg-white dark:bg-gray-800 bg-opacity-80 dark:bg-opacity-80 backdrop-blur-sm p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
@@ -244,7 +244,7 @@ export default function TopicDetail() {
           )}
           
           {/* 帖子列表 */}
-          <div className="bg-white dark:bg-gray-800 bg-opacity-80 dark:bg-opacity-80 backdrop-blur-sm rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-6">
+          <div className="custom-scrollbar">
             {loading ? (
               <div className="flex justify-center items-center h-64">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
@@ -268,7 +268,7 @@ export default function TopicDetail() {
                     <span className="text-xs">{t('topic.resultsFound', { count: filteredPosts.length })}</span>
                   </div>
                 )}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 140px)' }}>  
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
                   {filteredPosts.map(post => {
                     // 确保每个帖子都有必要的属性
                     const postWithDefaults = {
