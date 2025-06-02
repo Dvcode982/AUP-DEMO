@@ -359,3 +359,64 @@ export const topicAggregationAPI = {
     });
   },
 };
+
+/**
+ * 好友相关API
+ */
+export const friendsAPI = {
+  // 搜索用户
+  searchUsers: async (query: string) => {
+    return fetchAPI(`/api/friends/search?query=${encodeURIComponent(query)}`);
+  },
+  
+  // 获取好友列表
+  getFriendsList: async () => {
+    return fetchAPI('/api/friends/list');
+  },
+  
+  // 获取好友请求
+  getFriendRequests: async () => {
+    return fetchAPI('/api/friends/requests');
+  },
+  
+  // 获取推荐好友
+  getRecommendations: async (offset = 0, limit = 10) => {
+    return fetchAPI(`/api/friends/recommendations?offset=${offset}&limit=${limit}`);
+  },
+  
+  // 发送好友请求
+  sendFriendRequest: async (friendId: string) => {
+    return fetchAPI('/api/friends/request', {
+      method: 'POST',
+      body: JSON.stringify({ friendId }),
+    });
+  },
+  
+  // 接受好友请求
+  acceptFriendRequest: async (requestId: string) => {
+    return fetchAPI(`/api/friends/accept/${requestId}`, {
+      method: 'POST',
+    });
+  },
+  
+  // 拒绝好友请求
+  rejectFriendRequest: async (requestId: string) => {
+    return fetchAPI(`/api/friends/reject/${requestId}`, {
+      method: 'POST',
+    });
+  },
+  
+  // 取消好友请求
+  cancelFriendRequest: async (requestId: string) => {
+    return fetchAPI(`/api/friends/request/${requestId}`, {
+      method: 'DELETE',
+    });
+  },
+  
+  // 删除好友
+  deleteFriend: async (friendId: string) => {
+    return fetchAPI(`/api/friends/${friendId}`, {
+      method: 'DELETE',
+    });
+  },
+};

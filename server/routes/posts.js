@@ -140,62 +140,67 @@ module.exports = (app, db, authenticateToken) => {
   });
 
   // 创建帖子
-  app.post('/api/posts', authenticateToken, async (req, res) => {
-    const { content, media, tags, category, privacy, location } = req.body;
-
-    if (!content) {
-      return res.status(400).json({ error: 'Content is required' });
+  app.post('/api/posts', authenticateToken, (req, res) => {
+    const { title, content, tags } = req.body;
+    const userId = req.user.userId;
+    
+    if (!title || !content) {
+      return res.status(400).json({ error: '标题和内容不能为空' });
     }
-
-    // 从内容中提取标签（如果没有提供tags参数）
-    let extractedTags = tags || [];
-    if (!extractedTags.length) {
-      const tagRegex = /#([\u4e00-\u9fa5a-zA-Z0-9_]+)/g;
-      const matches = content.match(tagRegex);
-      if (matches) {
-        extractedTags = matches.map(tag => tag.substring(1));
-      }
-    }
-
+    
+    // 开始事务
     db.serialize(() => {
       db.run('BEGIN TRANSACTION');
-
-      db.run(
-        `INSERT INTO posts (author_id, content, image, category, privacy, location)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [req.user.userId, content, media, category, privacy || 'public', location],
-        function(err) {
-          if (err) {
-            db.run('ROLLBACK');
-            return res.status(500).json({ error: 'Failed to create post' });
-          }
-
-          const postId = this.lastID;
-
-          // 添加标签
-          if (extractedTags.length > 0) {
-            const tagValues = extractedTags.map(tag => `(${postId}, '${tag}')`).join(',');
-            db.run(`INSERT INTO post_tags (post_id, tag) VALUES ${tagValues}`, [], (err) => {
-              if (err) {
-                db.run('ROLLBACK');
-                return res.status(500).json({ error: 'Failed to add tags' });
-              }
-
-              db.run('COMMIT');
-              res.status(201).json({
-                id: postId,
-                message: 'Post created successfully'
-              });
-            });
-          } else {
-            db.run('COMMIT');
-            res.status(201).json({
-              id: postId,
-              message: 'Post created successfully'
-            });
-          }
+      
+      // 插入帖子
+      const insertPostSql = `
+        INSERT INTO posts (author_id, title, content, created_at)
+        VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+      `;
+      
+      db.run(insertPostSql, [userId, title, content], function(err) {
+        if (err) {
+          db.run('ROLLBACK');
+          console.error('Create post error:', err);
+          return res.status(500).json({ error: '创建帖子失败' });
         }
-      );
+        
+        const postId = this.lastID;
+        
+        // 如果有标签，插入标签
+        if (tags && tags.length > 0) {
+          const insertTagSql = `
+            INSERT INTO post_tags (post_id, tag)
+            VALUES (?, ?)
+          `;
+          
+          let completed = 0;
+          tags.forEach(tag => {
+            db.run(insertTagSql, [postId, tag], (err) => {
+              if (err) {
+                console.error('Insert tag error:', err);
+              }
+              completed++;
+              
+              if (completed === tags.length) {
+                db.run('COMMIT');
+                res.json({ 
+                  success: true, 
+                  message: '帖子发布成功',
+                  postId 
+                });
+              }
+            });
+          });
+        } else {
+          db.run('COMMIT');
+          res.json({ 
+            success: true, 
+            message: '帖子发布成功',
+            postId 
+          });
+        }
+      });
     });
   });
 

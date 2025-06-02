@@ -195,6 +195,7 @@ require('./routes/comments')(app, db, authenticateToken);
 require('./routes/users')(app, db, authenticateToken);
 require('./routes/messages')(app, db, authenticateToken);
 require('./routes/topicAggregation')(app, db, authenticateToken);
+require('./routes/friends')(app, db, authenticateToken);
 
 // 失物招领相关路由使用独立数据库
 require('./routes/lostAndFound')(app, dbLostFound, authenticateToken);
