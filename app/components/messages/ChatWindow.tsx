@@ -4,14 +4,12 @@ import { useState, useRef, useEffect } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Smile, ImageIcon, Mic, Send, FileText, Paperclip, Sticker, X } from 'lucide-react'
-import EmojiPicker from '../create-post/EmojiPicker'
-import { useTheme } from 'next-themes'
+import { Send, FileText, Paperclip, Sticker, X } from 'lucide-react'
 import { messagesAPI } from '@/lib/api'
 import toast from 'react-hot-toast'
 import { EmojiButton } from './EmojiButton'
-import Image from 'next/image'
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import { useAuth } from '@/app/contexts/AuthContext'
 
 interface Message {
   id: string
@@ -35,17 +33,15 @@ interface ChatWindowProps {
 }
 
 export default function ChatWindow({ chatId, title, showUserInfo = true, isComment = false }: ChatWindowProps) {
+  const { user } = useAuth();
+  const currentUserId = user?.id;
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
-  const [isRecording, setIsRecording] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const { theme } = useTheme()
-  const [isTyping, setIsTyping] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [partnerName, setPartnerName] = useState('');
   const [partnerAvatar, setPartnerAvatar] = useState('/images/lon.jpg');
-  const [imageUploading, setImageUploading] = useState(false)
   const [pastedImage, setPastedImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
@@ -65,16 +61,31 @@ export default function ChatWindow({ chatId, title, showUserInfo = true, isComme
           throw new Error('No messages data received');
         }
 
-        // 统一处理消息格式
-        const formattedMessages = data.messages.map((msg: any) => ({
-          id: msg.id,
-          content: msg.content,
-          type: msg.type || 'text',
-          sender: msg.sender,
-          timestamp: msg.timestamp || msg.created_at,
-          userId: msg.userId,
-          username: msg.username
-        }));
+        let formattedMessages;
+        if (isComment) {
+          // 评论区：只用 userId 判断 sender
+          formattedMessages = data.messages.map((msg: any) => ({
+            id: msg.id,
+            content: msg.content,
+            type: msg.type || 'text',
+            sender: String(msg.userId) === String(currentUserId) ? 'user' : 'other',
+            timestamp: msg.timestamp || msg.time || msg.created_at,
+            userId: msg.userId,
+            // 修正：优先 msg.username，其次 msg.author，其次 msg.email
+            username: msg.username || msg.author || msg.email || '匿名',
+          }));
+        } else {
+          // 私信
+          formattedMessages = data.messages.map((msg: any) => ({
+            id: msg.id,
+            content: msg.content,
+            type: msg.type || 'text',
+            sender: msg.sender,
+            timestamp: msg.timestamp || msg.created_at,
+            userId: msg.userId,
+            username: msg.username
+          }));
+        }
 
         console.log('Formatted messages:', formattedMessages);
         setMessages(formattedMessages);
@@ -95,12 +106,8 @@ export default function ChatWindow({ chatId, title, showUserInfo = true, isComme
     // 首次加载
     fetchMessages();
 
-    // 设置定期刷新
-    if (isComment) {
-      const interval = setInterval(fetchMessages, 5000); // 每5秒刷新一次评论
-      return () => clearInterval(interval);
-    }
-  }, [chatId, isComment]);
+    // 移除自动刷新 setInterval
+  }, [chatId, isComment, currentUserId]);
 
   const handleSendMessage = async () => {
     const hasImage = pastedImage && imagePreview;
@@ -118,14 +125,13 @@ export default function ChatWindow({ chatId, title, showUserInfo = true, isComme
 
       if (hasImage && currentImage) {
         const tempId = `temp-${Date.now()}`;
-        const tempMessage = {
+        const tempMessage: Message = {
           id: tempId,
           sender: 'user',
           content: currentPreview || '',
           type: 'image',
           timestamp: new Date().toLocaleString()
         };
-
         setMessages(prev => [...prev, tempMessage]);
 
         try {
@@ -152,14 +158,16 @@ export default function ChatWindow({ chatId, title, showUserInfo = true, isComme
 
       if (hasText) {
         const tempId = `temp-${Date.now()}-text`;
-        const tempMessage = {
+        // 修正：临时消息加上 username 和 userId
+        const tempMessage: Message & { username?: string; userId?: string } = {
           id: tempId,
           content: currentMessage,
           type: 'text',
           sender: 'user',
-          timestamp: new Date().toLocaleTimeString()
+          timestamp: new Date().toLocaleTimeString(),
+          username: user?.username || user?.name || user?.email || '我',
+          userId: user?.id ? String(user.id) : undefined,
         };
-
         setMessages(prev => [...prev, tempMessage]);
 
         try {
@@ -170,7 +178,8 @@ export default function ChatWindow({ chatId, title, showUserInfo = true, isComme
             msg.id === tempId ? {
               ...msg,
               id: response.id.toString(),
-              sender: 'user'
+              sender: 'user',
+              // 保持 username 和 userId 不变
             } : msg
           ));
         } catch (err) {
@@ -224,7 +233,33 @@ export default function ChatWindow({ chatId, title, showUserInfo = true, isComme
     setImagePreview(null);
   };
 
-  const renderMessageContent = (message: Message) => {
+  const userColorMap: Record<string, string> = {};
+  const colorPalette = [
+    'text-blue-400',
+    'text-green-400',
+    'text-pink-400',
+    'text-purple-400',
+    'text-cyan-400',
+    'text-yellow-300',
+    'text-amber-400',
+    'text-rose-400',
+    'text-lime-400',
+    'text-orange-400',
+  ];
+  function getUserColor(username: string | undefined, userId: string | undefined) {
+    if (!username && !userId) return colorPalette[0];
+    const key = String(userId || username);
+    if (!userColorMap[key]) {
+      // hash分配颜色
+      let hash = 0;
+      for (let i = 0; i < key.length; i++) hash = key.charCodeAt(i) + ((hash << 5) - hash);
+      const idx = Math.abs(hash) % colorPalette.length;
+      userColorMap[key] = colorPalette[idx];
+    }
+    return userColorMap[key];
+  }
+
+  const renderMessageContent = (message: Message & { username?: string; userId?: string }) => {
     if (message.type === 'image') {
       return (
         <div className="relative cursor-pointer" onClick={() => setSelectedImage(message.content)}>
@@ -243,13 +278,40 @@ export default function ChatWindow({ chatId, title, showUserInfo = true, isComme
         </div>
       );
     }
+    const visibleContent = (message.content || '').replace(/[\s\u3000\t\r\n]+/g, '');
+    if (isComment) {
+      const isUser = message.sender === 'user';
+      const colorClass = getUserColor(message.username, message.userId);
+      return (
+        <div className="min-w-[48px] max-w-2xl mb-2">
+          <span className={`font-bold text-lg align-middle ${colorClass}`}>
+            {message.username || '匿名'}
+          </span>
+          <span className="font-bold text-lg align-middle text-gray-300">：</span>
+          <span className="ml-1 text-base align-middle text-gray-100">{visibleContent.length > 0 ? visibleContent : <span className="opacity-60">(无内容)</span>}</span>
+        </div>
+      );
+    }
+    // 私聊消息：user消息蓝底色
     return (
-      <div className={`${
-        message.sender === 'user'
-          ? 'bg-blue-600 text-white rounded-2xl rounded-tr-sm'
-          : 'bg-gray-700 text-gray-200 rounded-2xl rounded-tl-sm'
-      } p-3 shadow-md`}>
-        <p className="text-sm break-words">{message.content}</p>
+      <div
+        className={`
+          ${
+            !isComment && message.sender === 'user'
+              ? 'bg-blue-600 text-white rounded-2xl rounded-tr-sm'
+              : 'bg-gray-700 text-gray-200 rounded-2xl rounded-tl-sm'
+          }
+          p-3 shadow-md max-w-xs lg:max-w-md xl:max-w-lg min-w-[48px]
+        `}
+        style={{
+          wordBreak: 'break-word',
+          overflowWrap: 'anywhere',
+          whiteSpace: 'pre-line',
+        }}
+      >
+        <p className="text-sm text-wrap-anywhere min-h-[1.5em]">
+          {visibleContent.length > 0 ? visibleContent : <span className="opacity-60">(无内容)</span>}
+        </p>
       </div>
     );
   };
@@ -289,6 +351,7 @@ export default function ChatWindow({ chatId, title, showUserInfo = true, isComme
           <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500"></div>
         </div>
 
+        {/* 恢复原本的内容区样式 */}
         <div className="relative z-10 flex-grow overflow-y-auto p-4 pt-[52px] text白">
           {loading ? (
             <div className="flex justify-center items-center h-full">
@@ -307,37 +370,42 @@ export default function ChatWindow({ chatId, title, showUserInfo = true, isComme
               暂无消息记录，发送第一条消息开始对话吧
             </div>
           ) : (
-            messages.map((message) => (
-              <div key={message.id} className={`mt-6 flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'} items-start`}>
-                {message.sender !== 'user' && (
-                  <Avatar className="h-8 w-8 mr-2 flex-shrink-0">
-                    <AvatarImage 
-                      src="/images/lon.jpg"
-                      alt="User avatar"
-                    />
-                    <AvatarFallback>U</AvatarFallback>
-                  </Avatar>
-                )}
-                
-                <div className="flex flex-col">
-                  <div className={message.type === 'image' ? 'max-w-[240px]' : 'max-w-xs lg:max-w-md xl:max-w-lg'}>
+            messages.map((message, idx) => (
+              <div key={message.id} className="mb-4">
+                {isComment ? (
+                  <>
                     {renderMessageContent(message)}
+                    <div className="flex items-center gap-4 mt-1">
+                      <span className="text-xs text-gray-400">{message.timestamp}</span>
+                      <span className="text-xs text-amber-300">#{idx + 1}楼</span>
+                    </div>
+                  </>
+                ) : (
+                  <div className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'} items-start mt-6`}>
+                    {message.sender !== 'user' && (
+                      <Avatar className="h-8 w-8 mr-2 flex-shrink-0">
+                        <AvatarImage src="/images/lon.jpg" alt="User avatar" />
+                        <AvatarFallback>U</AvatarFallback>
+                      </Avatar>
+                    )}
+                    <div className="flex flex-col">
+                      <div className={message.type === 'image' ? 'max-w-[240px]' : 'max-w-xs lg:max-w-md xl:max-w-lg'}>
+                        {renderMessageContent(message)}
+                      </div>
+                      <span className={`text-xs text-gray-700 dark:text-gray-300 mt-1 ${message.sender === 'user' ? 'text-right' : 'text-left'}`}>
+                        {message.timestamp}
+                      </span>
+                    </div>
+                    {message.sender === 'user' && (
+                      <Avatar className="h-8 w-8 ml-2 flex-shrink-0">
+                        <AvatarImage 
+                          src="/images/avt.jpg"
+                          alt="User avatar"
+                        />
+                        <AvatarFallback>U</AvatarFallback>
+                      </Avatar>
+                    )}
                   </div>
-                  <span className={`text-xs text-gray-700 dark:text-gray-300 mt-1 ${
-                    message.sender === 'user' ? 'text-right' : 'text-left'
-                  }`}>
-                    {message.timestamp}
-                  </span>
-                </div>
-                
-                {message.sender === 'user' && (
-                  <Avatar className="h-8 w-8 ml-2 flex-shrink-0">
-                    <AvatarImage 
-                      src="/images/avt.jpg"
-                      alt="User avatar"
-                    />
-                    <AvatarFallback>U</AvatarFallback>
-                  </Avatar>
                 )}
               </div>
             ))
@@ -418,4 +486,3 @@ export default function ChatWindow({ chatId, title, showUserInfo = true, isComme
     </>
   );
 }
-

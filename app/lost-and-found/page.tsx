@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Sidebar from '../components/Sidebar'
 import LostFoundCard from '../components/LostFoundCard'
 import SearchBar from '../components/SearchBar'
+import FloatingActionButton from '../components/FloatingActionButton'
 import { lostAndFoundAPI } from '@/lib/api'
 
 export default function LostAndFound() {
@@ -63,6 +64,7 @@ export default function LostAndFound() {
               <div className="col-span-4 text-center py-10">暂无失物招领信息</div>
             )}
           </div>
+          <FloatingActionButton />
         </div>
       </main>
     </div>

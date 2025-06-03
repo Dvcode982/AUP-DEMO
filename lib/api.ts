@@ -10,9 +10,9 @@ export async function fetchAPI(
   const url = `${API_BASE_URL}${endpoint}`;
   
   // 设置默认headers
-  const headers = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...options.headers,
+    ...(options.headers as Record<string, string>),
   };
   
   // 从本地存储获取token
@@ -57,6 +57,16 @@ export async function fetchAPI(
     
     // 处理非200状态码
     if (!response.ok) {
+      // 兼容后端无 error 字段时的 404/500 等情况
+      if (response.status === 404) {
+        // 返回空对象或空数组，避免前端崩溃
+        return {};
+      }
+      // 对于数据库等后端错误，返回空对象并打印警告，避免前端崩溃
+      if (response.status >= 500) {
+        console.warn('Server error:', data?.error || response.statusText);
+        return {};
+      }
       throw new Error(data?.error || response.statusText);
     }
     
@@ -119,6 +129,7 @@ export const messagesAPI = {
   
   getMessages: async (chatId: string) => {
     const currentUserId = localStorage.getItem('userId');
+    const currentUserEmail = localStorage.getItem('userEmail');
 
     if (chatId.startsWith('post-')) {
       const postId = chatId.replace('post-', '');
@@ -127,16 +138,16 @@ export const messagesAPI = {
         const comments = await fetchAPI(`/api/posts/${postId}/comments`);
         console.log('Fetched post comments:', comments);
 
-        // 确保评论数据格式正确
+        // 用 userId 判断归属
         return {
           messages: comments.map((comment: any) => ({
             id: String(comment.id),
             content: comment.content || '',
             type: comment.type || 'text',
-            sender: comment.userId === currentUserId ? 'user' : 'other',
-            userId: comment.userId,
-            timestamp: comment.created_at || new Date().toISOString(),
-            username: comment.username || 'Unknown User',
+            sender: String(comment.userId) === String(currentUserId) ? 'user' : 'other',
+            userId: String(comment.userId),
+            timestamp: comment.time || comment.created_at || new Date().toISOString(),
+            username: comment.author?.split?.('@')[0] || 'Unknown User',
             commentId: comment.id,
             postId: postId
           })),
@@ -246,32 +257,19 @@ export const messagesAPI = {
     });
   },
 
-  sendComment: async (postId: string, content: string, type: 'text' | 'image' = 'text') => {
+  sendComment: async (postId: string, content: string) => {
     const cleanPostId = postId.replace('post-', '');
-    const currentUserId = localStorage.getItem('userId');
-
     try {
-      // 发送评论并保存到数据库
       const comment = await fetchAPI(`/api/posts/${cleanPostId}/comments`, {
         method: 'POST',
-        body: JSON.stringify({
-          content,
-          type,
-          userId: currentUserId,
-          created_at: new Date().toISOString()
-        })
+        body: JSON.stringify({ content })
       });
-
-      // 返回统一格式的评论数据
       return {
         id: String(comment.id),
         content,
-        type,
+        type: 'text',
         sender: 'user',
-        userId: currentUserId,
-        timestamp: comment.created_at || new Date().toISOString(),
-        commentId: comment.id,
-        postId: cleanPostId
+        timestamp: new Date().toLocaleString()
       };
     } catch (error) {
       console.error('Failed to save comment:', error);
@@ -415,5 +413,72 @@ export const lostAndFoundAPI = {
     return fetchAPI(`/api/lost-and-found/${itemId}/share`, {
       method: 'POST',
     });
+  },
+};
+
+/**
+ * 主题聚合相关API
+ */
+export const topicAggregationAPI = {
+  // 获取主题推荐
+  getTopicRecommendations: async () => {
+    // 兼容旧接口和新接口
+    try {
+      // 新接口优先
+      return await fetchAPI('/api/topic-aggregation/recommendations');
+    } catch {
+      // 兼容新主页api.ts的接口
+      return await fetchAPI('/api/topic-recommendations');
+    }
+  },
+
+  // 获取智能聚合的帖子
+  getAggregatedPosts: async (limit?: number, offset?: number) => {
+    // 新主页api.ts风格
+    if (typeof limit !== 'undefined' || typeof offset !== 'undefined') {
+      const params = new URLSearchParams();
+      if (limit) params.append('limit', limit.toString());
+      if (offset) params.append('offset', offset.toString());
+      const queryString = params.toString();
+      // 新主页api.ts接口
+      try {
+        return await fetchAPI(`/api/aggregated-posts${queryString ? `?${queryString}` : ''}`);
+      } catch {
+        // 兼容旧接口
+        return await fetchAPI(`/api/topic-aggregation/aggregated-posts${queryString ? `?${queryString}` : ''}`);
+      }
+    }
+    // 默认
+    return fetchAPI('/api/topic-aggregation/aggregated-posts');
+  },
+
+  // 获取主题下的热门标签
+  getTopicPopularTags: async (topic: string, limit?: number) => {
+    const params = new URLSearchParams();
+    if (limit) params.append('limit', limit.toString());
+    const queryString = params.toString();
+    return fetchAPI(`/api/topics/${encodeURIComponent(topic)}/popular-tags${queryString ? `?${queryString}` : ''}`);
+  },
+
+  // 记录用户交互行为
+  trackInteraction: async (data: {
+    postId?: string;
+    topic?: string;
+    tag?: string;
+    actionType: 'view' | 'like' | 'comment' | 'share' | 'create';
+  }) => {
+    // 新主页api.ts风格
+    try {
+      return await fetchAPI('/api/track-interaction', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+    } catch {
+      // 兼容旧接口
+      return await fetchAPI('/api/topic-aggregation/track', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+    }
   },
 };

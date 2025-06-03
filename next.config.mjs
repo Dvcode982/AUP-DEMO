@@ -3,7 +3,8 @@ const nextConfig = {
   images: {
     domains: [
       'hebbkx1anhila5yf.public.blob.vercel-storage.com',
-      '*.public.blob.vercel-storage.com' // 允许所有子域名
+      '*.public.blob.vercel-storage.com', // 允许所有子域名
+      'picsum.photos' // 添加 picsum.photos 用于测试图片
     ]
   },
   webpack(config) {

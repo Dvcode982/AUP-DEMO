@@ -73,6 +73,64 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loadUserFromStorage();
   }, []);
 
+  // 监听 storage 事件，以便在其他标签页或组件清除 token 时同步状态
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'token' && e.newValue === null) {
+        // token 被清除，同步清除用户状态
+        setUser(null);
+        setToken(null);
+      } else if (e.key === 'token' && e.newValue) {
+        // token 被更新，重新加载用户信息
+        const storedUserId = localStorage.getItem('userId');
+        const storedUserData = localStorage.getItem('userData');
+        
+        if (storedUserId) {
+          setToken(e.newValue);
+          
+          if (storedUserData) {
+            try {
+              const userData = JSON.parse(storedUserData);
+              setUser({ 
+                id: storedUserId, 
+                email: userData.email || '',
+                username: userData.username,
+                avatar: userData.avatar,
+                role: userData.role,
+                grade: userData.grade,
+                department: userData.department,
+                bio: userData.bio
+              });
+            } catch {
+              setUser({ id: storedUserId, email: '' });
+            }
+          }
+        }
+      }
+    };
+
+    // 监听同一域名下其他标签页的 storage 变化
+    window.addEventListener('storage', handleStorageChange);
+
+    // 监听当前标签页的 localStorage 清除（用于处理 fetchAPI 中的 401 错误）
+    const checkAuthStatus = () => {
+      const currentToken = localStorage.getItem('token');
+      if (!currentToken && token) {
+        // token 被清除但 state 中还有，需要同步
+        setUser(null);
+        setToken(null);
+      }
+    };
+
+    // 定期检查 localStorage 状态
+    const interval = setInterval(checkAuthStatus, 1000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, [token]);
+
   // 登录函数
   const login = (newToken: string, userId: string | number, userData?: Partial<User>) => {
     const newUser = { 

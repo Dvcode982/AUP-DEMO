@@ -47,15 +47,18 @@ export default function MessageList({ onSelectChat }: MessageListProps) {
         setLoading(true)
         const data = await messagesAPI.getConversations()
         setMessages(data)
+        setError('') // 清除之前的错误
       } catch (err: any) {
         console.error('获取对话列表失败:', err)
         // 检查是否是认证错误
         if (err.message && err.message.includes('Authentication token required')) {
-          setError('请先登录后再访问消息功能')
+          // 认证错误由全局处理，这里不需要显示错误信息
+          // fetchAPI 已经处理了重定向
+          return;
         } else {
           setError('无法加载对话列表')
+          toast.error('获取对话列表失败')
         }
-        toast.error('获取对话列表失败')
       } finally {
         setLoading(false)
       }
@@ -129,7 +132,36 @@ export default function MessageList({ onSelectChat }: MessageListProps) {
         onSelectUser={handleUserSelect} 
       />
       <div className="overflow-y-auto" style={{ height: 'calc(100vh - 240px)' }}>
-        {filteredMessages.map((message) => (
+        {loading ? (
+          // 加载状态
+          <div className="flex items-center justify-center h-full">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        ) : error ? (
+          // 错误状态
+          <div className="flex items-center justify-center h-full p-4">
+            <div className="text-center">
+              <p className="text-red-500 dark:text-red-400 mb-2">{error}</p>
+              <Button 
+                onClick={() => window.location.reload()} 
+                variant="outline"
+                size="sm"
+              >
+                重试
+              </Button>
+            </div>
+          </div>
+        ) : filteredMessages.length === 0 ? (
+          // 空状态
+          <div className="flex items-center justify-center h-full p-4">
+            <div className="text-center text-gray-500 dark:text-gray-400">
+              <p className="mb-2">暂无消息</p>
+              <p className="text-sm">点击右上角搜索用户开始聊天</p>
+            </div>
+          </div>
+        ) : (
+          // 消息列表
+          filteredMessages.map((message) => (
             <div
             key={message.id}
             className={`flex items-center p-4 cursor-pointer ${hoverBgColor} ${message.unread ? (theme === 'dark' ? 'bg-indigo-700/60' : 'bg-indigo-200/90') : ''}`}
@@ -162,7 +194,8 @@ export default function MessageList({ onSelectChat }: MessageListProps) {
               </p>
             </div>
             </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   )

@@ -6,7 +6,12 @@ module.exports = (app, db, authenticateToken) => {
     let query = `
       SELECT 
         p.id,
-        u.email as author,
+        p.author_id,
+        u.email as author_email,
+        COALESCE(up.username, '用户' || SUBSTR(u.id, 1, 4)) as author,
+        up.avatar as author_avatar,
+        up.role as author_role,
+        up.department as author_department,
         p.content,
         p.image,
         p.created_at as time,
@@ -18,6 +23,7 @@ module.exports = (app, db, authenticateToken) => {
         (SELECT COUNT(*) FROM shares WHERE post_id = p.id) as shares
       FROM posts p
       JOIN users u ON p.author_id = u.id
+      LEFT JOIN user_profiles up ON u.id = up.user_id
       WHERE p.privacy = 'public'
     `;
     
@@ -73,7 +79,14 @@ module.exports = (app, db, authenticateToken) => {
     const query = `
       SELECT 
         p.id,
-        u.email as author,
+        p.author_id,
+        u.email as author_email,
+        COALESCE(up.username, '用户' || SUBSTR(u.id, 1, 4)) as author,
+        up.avatar as author_avatar,
+        up.role as author_role,
+        up.department as author_department,
+        up.grade as author_grade,
+        up.bio as author_bio,
         p.content,
         p.image,
         p.created_at as time,
@@ -85,6 +98,7 @@ module.exports = (app, db, authenticateToken) => {
         (SELECT COUNT(*) FROM shares WHERE post_id = p.id) as shares
       FROM posts p
       JOIN users u ON p.author_id = u.id
+      LEFT JOIN user_profiles up ON u.id = up.user_id
       WHERE p.id = ? AND (p.privacy = 'public' OR p.author_id = ?)
     `;
 
@@ -102,6 +116,24 @@ module.exports = (app, db, authenticateToken) => {
           return res.status(500).json({ error: 'Error fetching post tags' });
         }
         post.tags = tags.map(t => t.tag);
+        
+        // 记录用户浏览行为（如果用户已登录）
+        if (req.user?.userId) {
+          const topic = post.category || '';
+          const mainTag = tags.length > 0 ? tags[0].tag : null;
+          
+          db.run(
+            `INSERT INTO user_interactions (user_id, post_id, topic, tag, action_type)
+             VALUES (?, ?, ?, ?, 'view')`,
+            [req.user.userId, id, topic, mainTag],
+            (err) => {
+              if (err) {
+                console.error('Error recording user interaction:', err);
+              }
+            }
+          );
+        }
+        
         res.json(post);
       });
     });
