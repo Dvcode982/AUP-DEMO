@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Textarea } from "@/components/ui/textarea"
 import dynamic from 'next/dynamic'
-import { useLanguage } from '@/app/contexts/LanguageContext'
 
 const EmojiPicker = dynamic(() => import('./EmojiPicker'), { ssr: false })
 
@@ -11,13 +10,11 @@ interface TextInputProps {
   value: string
   onChange: (value: string) => void
   onEmojiSelect: (emoji: string) => void
-  placeholder?: string
 }
 
-export default function TextInput({ value, onChange, onEmojiSelect, placeholder }: TextInputProps) {
+export default function TextInput({ value, onChange, onEmojiSelect }: TextInputProps) {
   const [charCount, setCharCount] = useState(0)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const { t } = useLanguage()
 
   useEffect(() => {
     setCharCount(value.length)
@@ -42,7 +39,7 @@ export default function TextInput({ value, onChange, onEmojiSelect, placeholder 
           ref={textareaRef}
           value={value}
           onChange={handleChange}
-          placeholder={placeholder || t('createPost.textInputPlaceholder')}
+          placeholder="分享你的想法..."
           className="min-h-[100px]"
         />
         <EmojiPicker onEmojiSelect={handleEmojiSelect} />

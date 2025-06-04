@@ -310,6 +310,13 @@ export const lostAndFoundAPI = {
     });
   },
 
+  // 取消已归还状态
+  cancelReturned: async (itemId: string) => {
+    return fetchAPI(`/api/lost-and-found/${itemId}/cancel-return`, {
+      method: 'PUT',
+    });
+  },
+
   // 分享失物招领
   sharePost: async (itemId: string) => {
     return fetchAPI(`/api/lost-and-found/${itemId}/share`, {

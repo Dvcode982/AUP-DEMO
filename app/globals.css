@@ -145,23 +145,7 @@
     animation: fadeInUp 0.5s ease-out;
   }
   
-  /* 滚动容器基础样式 */
-  .scroll-container {
-    @apply overflow-y-auto overflow-x-hidden;
-    height: calc(100vh - 140px);
-    scrollbar-width: thin;
-    scrollbar-color: rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.05);
-  }
-  
-  .dark .scroll-container {
-    scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.05);
-  }
-  
   /* 优化滚动条样式 */
-  .custom-scrollbar {
-    @apply scroll-container;
-  }
-  
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
   }
@@ -227,6 +211,42 @@
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+  
+  /* Line clamp utilities */
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+  
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+  
+  .line-clamp-4 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+  }
+  
+  .line-clamp-none {
+    overflow: visible;
+    display: block;
+    -webkit-box-orient: horizontal;
+    -webkit-line-clamp: none;
   }
 }
 

@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import TextInput from './create-post/TextInput'
 import MediaUpload from './create-post/MediaUpload'
+import EmojiPicker from './create-post/EmojiPicker'
 import TagSelector from './create-post/TagSelector'
 import { postsAPI } from '@/lib/api'
 import { useSearchParams } from 'next/navigation'
-import { useLanguage } from '@/app/contexts/LanguageContext'
 
 export default function CreatePost() {
   const [content, setContent] = useState('')
@@ -16,7 +16,6 @@ export default function CreatePost() {
   const [tags, setTags] = useState<string[]>([])
   const [category, setCategory] = useState<string>('')
   const searchParams = useSearchParams()
-  const { t } = useLanguage()
   
   // 从URL获取主题参数
   useEffect(() => {
@@ -73,17 +72,17 @@ export default function CreatePost() {
       setTags([])
       
       // 可以添加成功提示或跳转到帖子列表页
-      alert(t('createPost.success'))
+      alert('帖子发布成功！')
     } catch (error) {
       console.error('Error creating post:', error)
-      alert(t('createPost.failure'))
+      alert('发布失败，请重试')
     }
   }
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle>{t('createPost.title')}</CardTitle>
+        <CardTitle>创建新帖子</CardTitle>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
@@ -97,13 +96,12 @@ export default function CreatePost() {
             selectedTags={tags} 
             onTagsChange={setTags} 
             topic={category} 
-            addTagButtonText={t('createPost.addTagButton')}
           />
           
           <MediaUpload onFileSelect={setMedia} />
         </CardContent>
         <CardFooter>
-          <Button type="submit" className="w-full">{t('createPost.publishButton')}</Button>
+          <Button type="submit" className="w-full">发布帖子</Button>
         </CardFooter>
       </form>
     </Card>

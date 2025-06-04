@@ -4,12 +4,11 @@ import { useState, useEffect } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Search, UserPlus } from 'lucide-react'
+import { Search, Plus, UserPlus } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { messagesAPI } from '@/lib/api'
 import toast from 'react-hot-toast'
 import UserSearchModal from './UserSearchModal'
-import { useLanguage } from '@/app/contexts/LanguageContext'
 
 interface Message {
   id: string
@@ -33,9 +32,8 @@ export default function MessageList({ onSelectChat }: MessageListProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [searchTerm, setSearchTerm] = useState('')  
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState('')
   const [isUserSearchOpen, setIsUserSearchOpen] = useState(false)
-  const { t } = useLanguage()
 
   // 添加mounted状态管理
   useEffect(() => {
@@ -47,13 +45,13 @@ export default function MessageList({ onSelectChat }: MessageListProps) {
     async function fetchConversations() {
       try {
         setLoading(true)
-        const data: Message[] = await messagesAPI.getConversations()
+        const data = await messagesAPI.getConversations()
         setMessages(data)
-        setError(null) // 清除之前的错误，确保为 string | null
-      } catch (err: unknown) {
+        setError('') // 清除之前的错误
+      } catch (err: any) {
         console.error('获取对话列表失败:', err)
         // 检查是否是认证错误
-        if (err instanceof Error && err.message.includes('Authentication token required')) {
+        if (err.message && err.message.includes('Authentication token required')) {
           // 认证错误由全局处理，这里不需要显示错误信息
           // fetchAPI 已经处理了重定向
           return;
@@ -109,7 +107,7 @@ export default function MessageList({ onSelectChat }: MessageListProps) {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4 " />
             <Input
               type="text"
-              placeholder={t('messages.searchPlaceholder')}
+              placeholder="搜索消息或用户..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 bg-blue-200/80 dark:bg-gray-900 border-0 text-black dark:text-gray-200 placeholder-gray-500 focus:ring-0"

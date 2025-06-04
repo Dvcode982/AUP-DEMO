@@ -4,12 +4,14 @@ import { useState, useRef, useEffect } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Send, FileText, Paperclip, Sticker, X } from 'lucide-react'
+import { Smile, ImageIcon, Mic, Send, FileText, Paperclip, Sticker, X } from 'lucide-react'
+import EmojiPicker from '../create-post/EmojiPicker'
+import { useTheme } from 'next-themes'
 import { messagesAPI  } from '@/lib/api'  // 修改为正确的路径
 import toast from 'react-hot-toast'
 import { EmojiButton } from './EmojiButton'
+import Image from 'next/image'
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
-import { useLanguage } from '@/app/contexts/LanguageContext'
 
 interface Message {
   id: string
@@ -35,14 +37,17 @@ const initialMessages: Message[] = []
 export default function ChatWindow({ chatId }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [newMessage, setNewMessage] = useState('')
+  const [isRecording, setIsRecording] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const { theme } = useTheme()
+  const [isTyping, setIsTyping] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [chatPartner, setChatPartner] = useState({ name: '加载中...', avatar: '/images/lon.jpg' })
+  const [imageUploading, setImageUploading] = useState(false);
   const [pastedImage, setPastedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const { t } = useLanguage()
 
   // 获取聊天历史
   useEffect(() => {
@@ -85,9 +90,9 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
             avatar: data.partnerAvatar || '/images/lon.jpg'
           });
         }
-      } catch (err: unknown) {
+      } catch (err) {
         console.error('获取聊天历史失败:', err);
-        setError(t('error.server'));
+        setError('无法加载聊天历史');
       } finally {
         setLoading(false);
         scrollToBottom();
@@ -148,7 +153,7 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
           const uploadResult = await messagesAPI.uploadImage(chatId, formData);
 
           // 发送图片消息
-          const sendResponse: Message = await messagesAPI.sendMessage(chatId, uploadResult.url, 'image');
+          const sendResponse = await messagesAPI.sendMessage(chatId, uploadResult.url, 'image');
           console.log('Image message sent:', sendResponse);
 
           // 更新消息列表
@@ -160,9 +165,9 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
             } : msg
           ));
 
-        } catch (err: unknown) {
+        } catch (err) {
           console.error('Failed to send image:', err);
-          toast.error(t('error.unknown'));
+          toast.error('图片发送失败');
           setMessages(prev => prev.filter(msg => msg.id !== tempId));
         }
       }
@@ -185,7 +190,7 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
           }]);
 
           // 发送消息
-          const textMessage: Message = await messagesAPI.sendMessage(chatId, currentMessage, 'text');
+          const textMessage = await messagesAPI.sendMessage(chatId, currentMessage, 'text');
           
           // 更新消息状态
           setMessages(prev => prev.map(msg => 
@@ -194,16 +199,16 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
               type: 'text'
             } : msg
           ));
-        } catch (err: unknown) {
+        } catch (err) {
           console.error('文本发送失败:', err);
-          toast.error(t('error.unknown'));
+          toast.error('发送失败');
           // 移除临时消息
           setMessages(prev => prev.filter(msg => msg.id !== tempTextId));
         }
       }
-    } catch (err: unknown) {
+    } catch (err) {
       console.error('发送失败:', err);
-      toast.error(t('error.unknown'));
+      toast.error('发送失败');
     }
   };
 
@@ -290,13 +295,13 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
                 <Avatar className="h-7 w-7 mr-3">
                   <AvatarImage 
                     src={chatPartner.avatar || '/images/lon.jpg'} 
-                    alt={chatPartner.name}
+                    alt={chatPartner.name} 
                     onError={(e) => {
                       (e.currentTarget as HTMLImageElement).src = '/images/lon.jpg';
                       e.currentTarget.onerror = null;
                     }} 
                   />
-                  <AvatarFallback>{chatPartner.name?.[0] || t('common.unknownUser')}</AvatarFallback>
+                  <AvatarFallback>{chatPartner.name?.[0] || "?"}</AvatarFallback>
                 </Avatar>
                 <h2 className="font-medium text-gray-800 dark:text-gray-200">{chatPartner.name}</h2>
               </div>
@@ -315,14 +320,14 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
           ) : error ? (
             <div className="flex flex-col justify-center items-center h-full text-center p-4">
               <div className="text-red-500 mb-2">{error}</div>
-              <div className="text-gray-500 text-sm mb-4">{t('error.authRequiredOrExpired')}</div>
+              <div className="text-gray-500 text-sm mb-4">可能是因为您尚未登录或登录已过期</div>
               <a href="/login" className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors">
-                {t('nav.login')}
+                前往登录
               </a>
             </div>
           ) : messages.length === 0 ? (
             <div className="flex justify-center items-center h-full text-gray-500">
-              {t('messages.noMessages')}
+              暂无消息记录，发送第一条消息开始对话吧
             </div>
           ) : (
             messages.map((message) => (
@@ -391,7 +396,7 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
           <div className="flex items-center space-x-2">
             <Input 
               type="text" 
-              placeholder={t('messages.inputPlaceholder')}
+              placeholder="输入消息..." 
               value={newMessage} 
               onChange={(e) => setNewMessage(e.target.value)} 
               onKeyPress={handleKeyPress}

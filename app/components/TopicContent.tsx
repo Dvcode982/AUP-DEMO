@@ -1,4 +1,4 @@
-import { useLanguage } from '../contexts/LanguageContext';
+import { useTranslation } from '../hooks/useTranslation'
 
 interface TopicContentProps {
   topic: string;
@@ -8,7 +8,8 @@ interface TopicContentProps {
 }
 
 export default function TopicContent({ topic, color, onTagClick, selectedTag }: TopicContentProps) {
-  const { t } = useLanguage();
+  const { t } = useTranslation()
+  
   const adjustColor = (color: string) => {
     color = color.trim();
     
@@ -43,65 +44,80 @@ export default function TopicContent({ topic, color, onTagClick, selectedTag }: 
   };
 
   const getTopicTags = (topic: string) => {
-    const tagMap: { [key: string]: string[] } = {
-      '学术交流': [
-        '#计导坛', '#数分坛', '#英语坛', '#线代坛', 
-        '#网导坛', '#信通坛', '#心导坛', '#数学坛', 
-        '#物理坛', '#生物学坛', '#地质学坛', '#气象学坛', 
-        '#经济学坛', '#政治学坛', '#社会学坛', '#量子力学坛', 
-        '#机械工程坛', '#土木工程坛', '#电气工程坛'
-    ],
-      '资源分享': [
-        '#电子书籍', '#视频资源', '#学习资料', '#考试题库',
-        '#课件分享', '#软件工具', '#学习笔记', '#实验资料'
-    ],
-      '竞赛交流': [
-        '#数学建模', '#程序设计', '#创新创业', '#学科竞赛',
-        '#挑战杯', '#创青春', '#互联网+'
-    ],
-      '校园生活': [
-        '#美食推荐', '#社团活动', '#校园风景', '#运动健身',
-        '#宿舍生活', '#校园趣事', '#学生会', '#文艺活动'
-    ],
-      '校园杂谈': [
-        '#校园新闻', '#活动通知', '#失物招领', '#二手交易',
-        '#闲聊灌水', '#情感交流', '#校园趣闻'
-    ],
-      '技术交流': [
-        '#编程开发', '#人工智能', '#网络技术', '#硬件维修',
-        '#数据分析', '#云计算', '#区块链', '#物联网'
-    ],
-      '表白墙': [
-        '#表白专区', '#脱单攻略', '#情感故事', '#暗恋专栏',
-        '#恋爱相談', '#心动瞬间'
-    ],
-      '就业兼职': [
-        '#实习信息', '#校招信息', '#求职经验', '#简历指导',
-        '#面试技巧', '#职业规划', '#兼职信息'
-    ],
-      // 添加其他主题的标签
+    // 将翻译后的主题名称映射回翻译键
+    const topicKeyMap: { [key: string]: string } = {
+      [t('academicExchange')]: 'academicExchange',
+      [t('resourceSharing')]: 'resourceSharing',
+      [t('competitionExchange')]: 'competitionExchange',
+      [t('campusLife')]: 'campusLife',
+      [t('campusChat')]: 'campusChat',
+      [t('techExchange')]: 'techExchange',
+      [t('confessionWall')]: 'confessionWall',
+      [t('jobPartTime')]: 'jobPartTime',
+      [t('topicCategories')]: 'topicCategories'
     };
-    return tagMap[topic] || [];
+
+    const topicKey = topicKeyMap[topic] || topic;
+
+    const tagMap: { [key: string]: string[] } = {
+      'academicExchange': [
+        '计导坛', '数分坛', '英语坛', '线代坛', 
+        '网导坛', '信通坛', '心导坛', '数学坛', 
+        '物理坛', '生物学坛', '地质学坛', '气象学坛', 
+        '经济学坛', '政治学坛', '社会学坛', '量子力学坛', 
+        '机械工程坛', '土木工程坛', '电气工程坛'
+      ],
+      'resourceSharing': [
+        '电子书籍', '视频资源', '学习资料', '考试题库',
+        '课件分享', '软件工具', '学习笔记', '实验资料'
+      ],
+      'competitionExchange': [
+        '数学建模', '程序设计', '创新创业', '学科竞赛',
+        '挑战杯', '创青春', '互联网+'
+      ],
+      'campusLife': [
+        '美食推荐', '社团活动', '校园风景', '运动健身',
+        '宿舍生活', '校园趣事', '学生会', '文艺活动'
+      ],
+      'campusChat': [
+        '校园新闻', '活动通知', '失物招领', '二手交易',
+        '闲聊灌水', '情感交流', '校园趣闻'
+      ],
+      'techExchange': [
+        '编程开发', '人工智能', '网络技术', '硬件维修',
+        '数据分析', '云计算', '区块链', '物联网'
+      ],
+      'confessionWall': [
+        '表白专区', '脱单攻略', '情感故事', '暗恋专栏',
+        '恋爱相談', '心动瞬间'
+      ],
+      'jobPartTime': [
+        '实习信息', '校招信息', '求职经验', '简历指导',
+        '面试技巧', '职业规划', '兼职信息'
+      ],
+      'topicCategories': []
+    };
+    return tagMap[topicKey] || [];
   };
 
   return (
     <>
       <div className="text-lg font-bold mb-4" style={{ color: adjustColor(color) }}>
-        {t(`topic.${topic}`)}
+        {topic}
       </div>
       <div className="grid grid-cols-2 gap-x-6 gap-y-4">
         {getTopicTags(topic).map((tag) => {
-          const isSelected = selectedTag === tag;
+          const isSelected = selectedTag === `#${tag}`;
+          const translatedTag = t(`tags.${tag}`);
           return (
             <span 
               key={tag}
               onClick={() => {
                 if (onTagClick) {
-                  onTagClick(tag);
+                  onTagClick(`#${tag}`);
                 } else {
                   // 如果没有提供onTagClick回调，则直接导航到主题详情页
-                  const tagText = tag.replace('#', '');
-                  window.location.href = `/topic-block/${encodeURIComponent(topic)}?tag=${encodeURIComponent(tagText)}`;
+                  window.location.href = `/topic-block/${encodeURIComponent(topic)}?tag=${encodeURIComponent(tag)}`;
                 }
               }}
               className={`relative text-sm transition-all cursor-pointer
@@ -117,7 +133,7 @@ export default function TopicContent({ topic, color, onTagClick, selectedTag }: 
                 borderRadius: isSelected ? '9999px' : '0',
               } as React.CSSProperties}
             >
-              <span className="relative z-10">{t(`topic.${tag}`)}</span>
+              <span className="relative z-10">#{translatedTag}</span>
               <svg 
                 className={`w-3 h-3 transition-all duration-300 
                            transform group-hover:translate-x-1 
@@ -125,6 +141,7 @@ export default function TopicContent({ topic, color, onTagClick, selectedTag }: 
                 fill="none" 
                 stroke="currentColor" 
                 viewBox="0 0 24 24"
+                aria-label={t('clickToViewTagPosts')}
               >
                 <path 
                   strokeLinecap="round" 

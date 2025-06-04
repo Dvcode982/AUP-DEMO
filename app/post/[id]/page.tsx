@@ -4,11 +4,10 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Heart, MessageCircle, Share2, ArrowLeft, Clock, User, Send, Tag, Building, Check } from 'lucide-react'
+import { Heart, MessageCircle, Share2, ArrowLeft, Clock, User, Send, Tag, Building } from 'lucide-react'
 import { postsAPI, topicAggregationAPI } from '@/lib/api'
 import { useAuth } from '@/app/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
-import { useLanguage } from '@/app/contexts/LanguageContext'
 
 interface PostData {
   id: string | number
@@ -29,9 +28,6 @@ interface PostData {
   likes?: number
   shares?: number
   comments?: number
-  isLostAndFound?: boolean
-  isReturned?: boolean
-  returnedTime?: string
 }
 
 interface CommentData {
@@ -39,7 +35,6 @@ interface CommentData {
   author: string
   author_role?: string
   author_department?: string
-  author_avatar?: string
   avatar?: string
   content: string
   time: string
@@ -47,7 +42,6 @@ interface CommentData {
 
 export default function PostPage() {
   const { id } = useParams()
-  const { t } = useLanguage()
   const [post, setPost] = useState<PostData | null>(null)
   const [comments, setComments] = useState<CommentData[]>([])
   const [newComment, setNewComment] = useState('')
@@ -229,7 +223,7 @@ export default function PostPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
       <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl p-8">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
-        <p className="mt-4 text-gray-600 dark:text-gray-400">{t('common.loading')}</p>
+        <p className="mt-4 text-gray-600 dark:text-gray-400">加载中...</p>
       </div>
     </div>
   )
@@ -237,10 +231,10 @@ export default function PostPage() {
   if (!post) return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
       <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 text-center">
-        <p className="text-gray-600 dark:text-gray-400">{t('error.notFound')}</p>
+        <p className="text-gray-600 dark:text-gray-400">帖子不存在或加载失败</p>
         <Link href="/" className="mt-4 inline-flex items-center text-blue-500 hover:text-blue-600">
           <ArrowLeft className="w-4 h-4 mr-1" />
-          {t('common.back')}
+          返回首页
         </Link>
       </div>
     </div>
@@ -253,7 +247,7 @@ export default function PostPage() {
         <div className="mb-6">
           <Link href="/" className="inline-flex items-center text-gray-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors">
             <ArrowLeft className="w-5 h-5 mr-2" />
-            <span className="font-medium">{t('common.back')}</span>
+            <span className="font-medium">返回首页</span>
           </Link>
         </div>
         
@@ -281,87 +275,99 @@ export default function PostPage() {
                       </div>
                     )}
                     <div className="ml-4">
-                      <div className="flex items-center">
-                        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{post.author}</h2>
+                      <div className="flex items-center gap-2">
+                        <h2 className="font-semibold text-lg text-gray-900 dark:text-gray-100">{post.author}</h2>
                         {post.author_role && (
-                          <span className={`ml-2 px-2 py-0.5 rounded text-xs font-medium ${getRoleBadgeStyle(post.author_role)}`}>
+                          <span className={`px-2 py-0.5 rounded text-xs font-medium ${getRoleBadgeStyle(post.author_role)}`}>
                             {post.author_role}
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        <Clock className="w-4 h-4 mr-1" />
-                        <span>{post.time}</span>
+                      <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+                        <div className="flex items-center">
+                          <Clock className="w-4 h-4 mr-1" />
+                          <span>{post.time}</span>
+                        </div>
+                        {post.author_department && (
+                          <div className="flex items-center">
+                            <Building className="w-4 h-4 mr-1" />
+                            <span>{post.author_department}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
-                  {post.isLostAndFound && (
-                    <div className="text-sm text-green-600 dark:text-green-400 flex items-center">
-                      <Check className="w-4 h-4 mr-1" />
-                      {post.isReturned 
-                        ? t('post.status.returned', { returnedTime: post.returnedTime || '' })
-                        : t('post.status.lostAndFound')}
-                    </div>
+                  {post.category && (
+                    <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full text-sm font-medium">
+                      {post.category}
+                    </span>
                   )}
                 </div>
               </div>
 
               {/* 帖子内容 */}
               <div className="p-6">
-                <div className="prose dark:prose-invert max-w-none">
-                  <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{post.content}</p>
-                </div>
-                
-                {/* 图片展示 */}
-                {post.image && (
-                  <div className="mt-4 relative aspect-video rounded-lg overflow-hidden">
-                    <Image
-                      src={post.image}
-                      alt={t('post.image')}
-                      fill
-                      className="object-cover"
+                {post.image && post.image !== "" && (
+                  <div className="mb-6 rounded-xl overflow-hidden">
+                    <Image 
+                      src={post.image} 
+                      alt="Post image" 
+                      width={800} 
+                      height={500} 
+                      className="w-full h-auto object-cover" 
                     />
                   </div>
                 )}
-                
+
+                <div className="prose prose-lg max-w-none dark:prose-invert">
+                  <p className="text-gray-800 dark:text-gray-200 leading-relaxed whitespace-pre-wrap">{post.content}</p>
+                </div>
+
                 {/* 标签 */}
                 {post.tags && post.tags.length > 0 && (
-                  <div className="mt-4 flex flex-wrap gap-2">
+                  <div className="mt-6 flex flex-wrap gap-2">
                     {post.tags.map((tag, index) => (
-                      <span
+                      <Link
                         key={index}
-                        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+                        href={`/search?tag=${encodeURIComponent(tag)}`}
+                        className="inline-flex items-center px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                       >
                         <Tag className="w-3 h-3 mr-1" />
-                        {t(`topic.#${tag}`, { tag: tag })}
-                      </span>
+                        {tag}
+                      </Link>
                     ))}
                   </div>
                 )}
               </div>
 
-              {/* 互动按钮 */}
-              <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <button
-                    onClick={handleLike}
-                    disabled={isProcessing}
-                    className={`flex items-center space-x-1 text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors ${
-                      isLiked ? 'text-blue-500 dark:text-blue-400' : ''
-                    }`}
-                  >
-                    <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
-                    <span>{likeCount}</span>
-                  </button>
-                  <button
-                    onClick={handleShare}
-                    disabled={isProcessing}
-                    className="flex items-center space-x-1 text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
-                  >
-                    <Share2 className="w-5 h-5" />
-                    <span>{shareCount}</span>
-                  </button>
+              {/* 互动栏 */}
+              <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-around">
+                <button 
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                    isLiked 
+                      ? 'bg-red-50 dark:bg-red-900/30 text-red-500' 
+                      : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400'
+                  }`}
+                  onClick={handleLike}
+                  disabled={isProcessing}
+                >
+                  <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
+                  <span className="font-medium">{likeCount}</span>
+                </button>
+                
+                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                  <MessageCircle className="w-5 h-5" />
+                  <span className="font-medium">{comments.length}</span>
                 </div>
+                
+                <button 
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 transition-all"
+                  onClick={handleShare}
+                  disabled={isProcessing}
+                >
+                  <Share2 className="w-5 h-5" />
+                  <span className="font-medium">{shareCount}</span>
+                </button>
               </div>
             </div>
 
@@ -369,29 +375,27 @@ export default function PostPage() {
             <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl shadow-lg p-6">
               <h3 className="text-lg font-semibold mb-4 flex items-center">
                 <MessageCircle className="w-5 h-5 mr-2 text-blue-500" />
-                {t('post.comment')}
+                评论 ({comments.length})
               </h3>
-
+              
               {/* 评论列表 */}
               {comments.length > 0 ? (
-                <div className="space-y-4">
+                <div className="space-y-4 mb-6">
                   {comments.map(comment => (
                     <div key={comment.id} className="flex gap-3 p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50">
-                      <div className="flex-shrink-0">
-                        {comment.author_avatar ? (
-                          <Image
-                            src={comment.author_avatar}
-                            alt={comment.author}
-                            width={40}
-                            height={40}
-                            className="rounded-full border-2 border-gray-200 dark:border-gray-600"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                            {comment.author.charAt(0).toUpperCase()}
-                          </div>
-                        )}
-                      </div>
+                      {comment.avatar ? (
+                        <Image 
+                          src={comment.avatar} 
+                          alt={comment.author} 
+                          width={40} 
+                          height={40} 
+                          className="rounded-full flex-shrink-0" 
+                        />
+                      ) : (
+                        <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                          {comment.author.charAt(0).toUpperCase()}
+                        </div>
+                      )}
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-1">
                           <div className="flex items-center gap-2">
@@ -412,26 +416,31 @@ export default function PostPage() {
               ) : (
                 <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                   <MessageCircle className="mx-auto mb-2 opacity-30" size={48} />
-                  <p>{t('post.noComments')}</p>
+                  <p>暂无评论，快来发表第一条评论吧！</p>
                 </div>
               )}
 
               {/* 评论输入框 */}
               <form onSubmit={handleSubmitComment} className="mt-6">
-                <div className="flex gap-4">
+                <div className="relative">
                   <textarea
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
-                    placeholder={t('post.writeComment')}
-                    className="flex-1 p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    placeholder={isAuthenticated ? "写下你的想法..." : "请先登录后再评论"}
+                    className="w-full p-4 pr-12 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 resize-none"
                     rows={3}
+                    disabled={commentLoading || !isAuthenticated}
                   />
-                  <button
-                    type="submit"
-                    disabled={commentLoading || !newComment.trim()}
-                    className="self-end px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  <button 
+                    type="submit" 
+                    className="absolute bottom-4 right-4 p-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed"
+                    disabled={commentLoading || !newComment.trim() || !isAuthenticated}
                   >
-                    <Send className="w-5 h-5" />
+                    {commentLoading ? (
+                      <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+                    ) : (
+                      <Send className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
               </form>
@@ -444,7 +453,7 @@ export default function PostPage() {
             <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl shadow-lg p-6">
               <h4 className="font-semibold mb-4 flex items-center">
                 <User className="w-5 h-5 mr-2 text-blue-500" />
-                {t('post.author')}
+                作者信息
               </h4>
               <div className="text-center">
                 {post.author_avatar || post.avatar ? (
@@ -487,8 +496,8 @@ export default function PostPage() {
 
             {/* 相关推荐 */}
             <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl shadow-lg p-6">
-              <h4 className="font-semibold mb-4">{t('post.relatedPosts')}</h4>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t('post.comingSoon')}</p>
+              <h4 className="font-semibold mb-4">相关推荐</h4>
+              <p className="text-sm text-gray-500 dark:text-gray-400">更多精彩内容即将推出...</p>
             </div>
           </div>
         </div>
