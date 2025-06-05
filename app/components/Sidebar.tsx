@@ -9,6 +9,7 @@ import Image from 'next/image'
 import { useBackground } from '../contexts/BackgroundContext'
 import { useAuth } from '../contexts/AuthContext'
 import { useTranslation } from '../hooks/useTranslation'
+import UserAvatar from './UserAvatar'
 
 const Sidebar = () => {
   const [mounted, setMounted] = useState(false)
@@ -52,34 +53,17 @@ const Sidebar = () => {
           // 已登录状态显示用户信息
           <Link href="/my-profile" className="block">
             <div className="bg-blue-50 dark:bg-gray-700 flex flex-col md:flex-row items-center md:space-x-4 p-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-800 hover:text-blue-600 dark:hover:text-blue-300 transition-colors">
-              {user.avatar ? (
-                <Image
-                  src={user.avatar}
-                  alt={t('userAvatar')}
-                  width={40}
-                  height={40}
-                  className="rounded-full border-2 border-blue-400"
-                />
-              ) : (
-                <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-full flex items-center justify-center text-white text-lg font-bold">
-                  {user.username ? user.username.charAt(0).toUpperCase() : 'U'}
-                </div>
-              )}
-              <div className="flex-1 hidden md:block">
-                <div className="font-medium text-gray-800 dark:text-gray-200 flex items-center gap-1">
-                  {user.username || t('noNickname')}
-                  {user.role && (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 ml-2">
-                      {user.role}
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
-                  {user.grade} {user.department || ''}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-500 mt-0.5 truncate">
-                  {user.email}
-                </p>
+              <UserAvatar 
+                src={user.avatar}
+                alt={user.username || user.email}
+                username={user.username || user.email}
+                size={40}
+                showBorder={true}
+                fallbackBg="from-blue-400 to-indigo-600"
+              />
+              <div className="hidden md:block mt-2 md:mt-0 text-center md:text-left">
+                <p className="font-medium text-sm">{user.username || user.email?.split('@')[0]}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{user.role || '用户'}</p>
               </div>
             </div>
             <div className="bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent h-[1px] hidden md:block"></div>

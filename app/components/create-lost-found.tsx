@@ -140,18 +140,10 @@ export default function CreateLostFound({ initialType = 'lost' }: CreateLostFoun
         // 基本信息
         itemName: formData.itemName,
         itemType: formData.type, // 'lost' 或 'found'
-        type: formData.type, // 兼容性字段
-        title: formData.itemName, // 兼容性字段
         content: formData.description,
-        description: formData.description, // 兼容性字段
         
         // 分类和标签
         category: formData.category,
-        tags: [
-          formData.category, 
-          formData.type === 'lost' ? '寻物启事' : '招领启事',
-          '失物招领'
-        ],
         
         // 位置和时间
         location: formData.location,
@@ -162,14 +154,7 @@ export default function CreateLostFound({ initialType = 'lost' }: CreateLostFoun
         reward: formData.reward || '',
         
         // 图片信息
-        images: formData.images,
-        
-        // 默认状态
-        isReturned: false,
-        views: 0,
-        likes: 0,
-        comments: 0,
-        shares: 0
+        images: formData.images
       }
       
       console.log('Submitting lost and found item:', submitData)

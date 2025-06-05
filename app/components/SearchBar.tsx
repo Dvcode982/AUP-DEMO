@@ -118,6 +118,18 @@ const SearchBar = ({ onSearch, placeholder, resultCount }: SearchBarProps = {}) 
 
             {/* AI智能搜索按钮 */}
             <button 
+              onClick={() => {
+                if (!searchQuery.trim()) {
+                  alert('请先输入搜索内容');
+                  return;
+                }
+                // 触发AI智能推荐事件
+                window.dispatchEvent(new CustomEvent('aiSmartRecommend', {
+                  detail: { keyword: searchQuery }
+                }));
+                // 执行搜索
+                handleSearch();
+              }}
               className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white transition-all duration-200 hover:shadow-lg"
               title="AI智能搜索"
             >
@@ -126,7 +138,14 @@ const SearchBar = ({ onSearch, placeholder, resultCount }: SearchBarProps = {}) 
 
             {/* 筛选按钮 */}
             <button 
-              onClick={() => setShowFilters(!showFilters)}
+              onClick={() => {
+                if (onSearch) {
+                  setShowFilters(!showFilters);
+                } else {
+                  // 默认筛选行为
+                  alert('筛选功能：可按时间、类型等条件筛选内容');
+                }
+              }}
               className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200 ${
                 showFilters 
                   ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' 

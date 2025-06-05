@@ -53,6 +53,13 @@ export default function LostAndFound() {
     timeRange: 'all',
     category: 'all'
   })
+  const [stats, setStats] = useState({
+    total: 0,
+    lost: 0,
+    found: 0,
+    resolved: 0,
+    unresolved: 0
+  })
 
   const categories = [
     { value: 'all', label: t('lostFound.categories.all') || '全部分类', icon: Package },
@@ -76,7 +83,18 @@ export default function LostAndFound() {
     }
     
     fetchItems(searchParam || '');
+    fetchStats();
   }, [])
+  
+  // 获取统计信息
+  const fetchStats = async () => {
+    try {
+      const statsData = await lostAndFoundAPI.getLostAndFoundStats();
+      setStats(statsData);
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+  }
   
   // 搜索失物招领
   const handleSearch = async (query: string) => {
@@ -85,17 +103,28 @@ export default function LostAndFound() {
   }
   
   // 获取失物招领数据
-  const fetchItems = async (query: string) => {
+  const fetchItems = async (query: string, typeFilter?: string) => {
     try {
       setLoading(true)
-      const data = await lostAndFoundAPI.getLostAndFoundItems(query)
+      
+      // 确保类型安全
+      let type: 'lost' | 'found' | undefined;
+      if (typeFilter === 'lost' || typeFilter === 'found') {
+        type = typeFilter;
+      } else if (filters.itemType === 'lost' || filters.itemType === 'found') {
+        type = filters.itemType;
+      } else {
+        type = undefined;
+      }
+      
+      const data = await lostAndFoundAPI.getLostAndFoundItems(query, type)
       // 为每个帖子添加头像和postType，并确保itemType正确传递
       const postsWithAvatars = data.map((post: any) => ({
         ...post,
         avatar: post.avatar || '/placeholder.svg?height=40&width=40',
         postType: 'lostAndFound',
-        // 确保itemType正确设置，如果没有则根据其他字段推断
-        itemType: post.itemType || (post.type === 'lost' ? 'lost' : post.type === 'found' ? 'found' : 'lost'),
+        // 确保itemType正确设置
+        itemType: post.itemType || 'lost',
         // 确保所有必要字段都存在
         itemName: post.itemName || post.title,
         content: post.content || post.description,
@@ -109,6 +138,17 @@ export default function LostAndFound() {
       console.error('Error fetching lost and found items:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  // 处理筛选器变化
+  const handleFilterChange = (filterType: keyof FilterState, value: string) => {
+    const newFilters = { ...filters, [filterType]: value };
+    setFilters(newFilters);
+    
+    // 如果是类型筛选，重新获取数据
+    if (filterType === 'itemType') {
+      fetchItems(searchQuery, value !== 'all' ? value : undefined);
     }
   }
 
@@ -153,13 +193,6 @@ export default function LostAndFound() {
   }
 
   const filteredPosts = applyFilters(lostAndFoundPosts);
-  const stats = {
-    total: filteredPosts.length,
-    lost: filteredPosts.filter(p => p.itemType === 'lost').length,
-    found: filteredPosts.filter(p => p.itemType === 'found').length,
-    resolved: filteredPosts.filter(p => p.isReturned).length,
-    unresolved: filteredPosts.filter(p => !p.isReturned).length
-  }
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
@@ -186,11 +219,11 @@ export default function LostAndFound() {
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-red-500">{stats.lost}</div>
-                    <div className="text-gray-500 dark:text-gray-400">{t('lostFound.stats.lost') || '寻物'}</div>
+                    <div className="text-gray-500 dark:text-gray-400">失物</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-green-500">{stats.found}</div>
-                    <div className="text-gray-500 dark:text-gray-400">{t('lostFound.stats.found') || '招领'}</div>
+                    <div className="text-gray-500 dark:text-gray-400">招领</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-purple-500">{stats.resolved}</div>
@@ -226,12 +259,12 @@ export default function LostAndFound() {
                   <div className="flex items-center space-x-2">
                     {[
                       { key: 'all', label: t('lostFound.filterAll') || '全部' },
-                      { key: 'lost', label: t('lostFound.lostItem') },
-                      { key: 'found', label: t('lostFound.foundItem') }
+                      { key: 'lost', label: '失物' },
+                      { key: 'found', label: '招领' }
                     ].map((type) => (
                       <button
                         key={type.key}
-                        onClick={() => setFilters(prev => ({ ...prev, itemType: type.key as any }))}
+                        onClick={() => handleFilterChange('itemType', type.key as any)}
                         className={`px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 ${
                           filters.itemType === type.key
                             ? 'bg-blue-500 text-white'
@@ -282,7 +315,7 @@ export default function LostAndFound() {
                       </label>
                       <select
                         value={filters.status}
-                        onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value as any }))}
+                        onChange={(e) => handleFilterChange('status', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                       >
                         <option value="all">{t('lostFound.allStatus') || '全部状态'}</option>
@@ -298,7 +331,7 @@ export default function LostAndFound() {
                       </label>
                       <select
                         value={filters.timeRange}
-                        onChange={(e) => setFilters(prev => ({ ...prev, timeRange: e.target.value as any }))}
+                        onChange={(e) => handleFilterChange('timeRange', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                       >
                         <option value="all">{t('lostFound.allTime') || '全部时间'}</option>
@@ -315,7 +348,7 @@ export default function LostAndFound() {
                       </label>
                       <select
                         value={filters.category}
-                        onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value }))}
+                        onChange={(e) => handleFilterChange('category', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                       >
                         {categories.map(cat => (

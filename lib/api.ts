@@ -161,7 +161,7 @@ export const messagesAPI = {
     });
   },
 
-  uploadImage: async (chatId: string, formData: FormData) => {
+  uploadImage: async (chatId: string, formData: FormData, onProgress?: (progress: number) => void) => {
     const file = formData.get('image') as File;
     if (!file) throw new Error('No image file provided');
 
@@ -169,17 +169,75 @@ export const messagesAPI = {
       console.log('Reading image file...');
       // 添加图片大小检查
       if (file.size > 10 * 1024 * 1024) { // 10MB 限制
-        throw new Error('Image too large, please select a file under 10MB');
+        throw new Error('图片太大，请选择小于10MB的文件');
       }
 
-      const base64Image = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
+      // 图片压缩函数
+      const compressImage = (file: File, quality: number = 0.8): Promise<string> => {
+        return new Promise((resolve, reject) => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          const img = new Image();
+          
+          img.onload = () => {
+            // 计算压缩后的尺寸
+            let { width, height } = img;
+            const maxWidth = 1920;
+            const maxHeight = 1080;
+            
+            if (width > maxWidth || height > maxHeight) {
+              const ratio = Math.min(maxWidth / width, maxHeight / height);
+              width *= ratio;
+              height *= ratio;
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            // 绘制压缩后的图片
+            ctx?.drawImage(img, 0, 0, width, height);
+            
+            // 转换为Base64
+            const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+            resolve(compressedBase64);
+          };
+          
+          img.onerror = reject;
+          img.src = URL.createObjectURL(file);
+        });
+      };
 
-      return { url: base64Image };
+      // 模拟上传进度
+      if (onProgress) {
+        onProgress(20);
+      }
+
+      const base64Image = await compressImage(file, 0.8);
+      
+      if (onProgress) {
+        onProgress(60);
+      }
+
+      // 检查压缩后的大小
+      const compressedSize = (base64Image.length * 3) / 4; // 估算字节大小
+      if (compressedSize > 5 * 1024 * 1024) { // 5MB 限制压缩后图片
+        // 如果还是太大，进一步压缩
+        const furtherCompressed = await compressImage(file, 0.6);
+        if (onProgress) {
+          onProgress(80);
+        }
+        
+        if (onProgress) {
+          onProgress(100);
+        }
+        return { url: furtherCompressed, compressed: true };
+      }
+
+      if (onProgress) {
+        onProgress(100);
+      }
+
+      return { url: base64Image, compressed: base64Image.length < file.size };
     } catch (error) {
       console.error('Image process failed:', error);
       throw error;
@@ -190,6 +248,31 @@ export const messagesAPI = {
     return fetchAPI(`/api/messages/${messageId}/read`, {
       method: 'POST',
     });
+  },
+
+  markConversationAsRead: async (userId: string) => {
+    return fetchAPI(`/api/messages/conversations/${userId}/read`, {
+      method: 'POST',
+    });
+  },
+
+  // 获取消息统计信息
+  getMessageStats: async (timeRange: 'today' | 'week' | 'month' = 'week') => {
+    return fetchAPI(`/api/messages/stats?timeRange=${timeRange}`);
+  },
+
+  // 获取消息时间线
+  getMessageTimeline: async (userId: string, limit: number = 50, offset: number = 0) => {
+    return fetchAPI(`/api/messages/timeline/${userId}?limit=${limit}&offset=${offset}`);
+  },
+
+  // 按时间范围搜索消息
+  searchMessagesByTime: async (userId: string, startDate: string, endDate: string) => {
+    const params = new URLSearchParams({
+      startDate,
+      endDate
+    });
+    return fetchAPI(`/api/messages/${userId}/search?${params.toString()}`);
   },
 };
 
@@ -272,9 +355,18 @@ export const postsAPI = {
  */
 export const lostAndFoundAPI = {
   // 获取失物招领列表
-  getLostAndFoundItems: async (search?: string) => {
-    const queryParams = search ? `?search=${encodeURIComponent(search)}` : '';
-    return fetchAPI(`/api/lost-and-found${queryParams}`);
+  getLostAndFoundItems: async (search?: string, type?: 'lost' | 'found') => {
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    if (type) params.append('type', type);
+    
+    const queryString = params.toString();
+    return fetchAPI(`/api/lost-and-found${queryString ? `?${queryString}` : ''}`);
+  },
+  
+  // 获取失物招领统计信息
+  getLostAndFoundStats: async () => {
+    return fetchAPI('/api/lost-and-found/stats');
   },
   
   // 创建失物招领

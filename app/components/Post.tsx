@@ -2,12 +2,13 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { Check, MessageCircle, Heart, Share2, MapPin, Calendar, User, Building } from 'lucide-react'
+import { Check, MessageCircle, Heart, Share2, MapPin, Calendar, User, Building, ExternalLink, Package, Clock, Eye } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { postsAPI, topicAggregationAPI } from '@/lib/api'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../contexts/AuthContext'
 import { useTranslation } from '../hooks/useTranslation'
+import UserAvatar from './UserAvatar'
 
 export interface PostProps {
   id: string | number
@@ -238,19 +239,13 @@ const Post = ({
           {/* 用户信息 - 更丰富的展示 */}
           <div className="flex items-start justify-between mb-2">
             <div className="flex items-center flex-1 min-w-0">
-              {displayAvatar ? (
-                <Image
-                  src={displayAvatar}
-                  alt={author}
-                  width={36}
-                  height={36}
-                  className="rounded-full border border-gray-200 dark:border-gray-700 flex-shrink-0"
-                />
-              ) : (
-                <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                  {author.charAt(0).toUpperCase()}
-                </div>
-              )}
+              <UserAvatar 
+                src={displayAvatar}
+                alt={author}
+                username={author}
+                size={36}
+                className="flex-shrink-0"
+              />
               <div className="ml-2.5 flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
                   <h3 className="font-semibold text-sm text-gray-800 dark:text-gray-200 truncate">{author}</h3>

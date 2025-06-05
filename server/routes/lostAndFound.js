@@ -1,13 +1,23 @@
 module.exports = (app, db, authenticateToken) => {
+  // 为lost_and_found表添加item_type字段
+  db.run(`ALTER TABLE lost_and_found ADD COLUMN item_type TEXT DEFAULT 'lost'`, (err) => {
+    if (err && !err.message.includes('duplicate column')) {
+      console.error('Error adding item_type column:', err.message);
+    } else {
+      console.log('Added item_type column to lost_and_found table');
+    }
+  });
+
   // 获取失物招领列表
   app.get('/api/lost-and-found', async (req, res) => {
-    const { search } = req.query;
+    const { search, type } = req.query;
     
     let query = `
       SELECT 
         l.id,
         u.email as author,
         l.content,
+        l.item_type as itemType,
         l.is_returned as isReturned,
         l.returned_time as returnedTime,
         l.created_at as time
@@ -15,24 +25,42 @@ module.exports = (app, db, authenticateToken) => {
       JOIN users u ON l.author_id = u.id
     `;
     
-    // 如果有搜索参数，添加搜索条件
+    const conditions = [];
+    const params = [];
+    
+    // 搜索条件
     if (search) {
-      query += ` WHERE l.content LIKE '%${search}%'`;
+      conditions.push('l.content LIKE ?');
+      params.push(`%${search}%`);
+    }
+    
+    // 类型过滤
+    if (type && (type === 'lost' || type === 'found')) {
+      conditions.push('l.item_type = ?');
+      params.push(type);
+    }
+    
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ');
     }
     
     query += ` ORDER BY l.created_at DESC`;
 
-    db.all(query, [], (err, items) => {
+    db.all(query, params, (err, items) => {
       if (err) {
         return res.status(500).json({ error: 'Database error' });
       }
 
-      // 为每个项目添加固定标签
-      const itemsWithTags = items.map(item => ({
-        ...item,
-        tags: ['失物招领'],
-        isLostAndFound: true
-      }));
+      // 根据类型为每个项目添加正确的标签
+      const itemsWithTags = items.map(item => {
+        const itemType = item.itemType || 'lost'; // 默认为失物
+        return {
+          ...item,
+          itemType,
+          tags: [itemType === 'lost' ? '失物' : '招领'],
+          isLostAndFound: true
+        };
+      });
 
       res.json(itemsWithTags);
     });
@@ -84,6 +112,7 @@ module.exports = (app, db, authenticateToken) => {
         l.id,
         u.email as author,
         l.content,
+        l.item_type as itemType,
         l.is_returned as isReturned,
         l.returned_time as returnedTime,
         l.created_at as time
@@ -100,8 +129,10 @@ module.exports = (app, db, authenticateToken) => {
         return res.status(404).json({ error: 'Item not found' });
       }
 
-      // 添加固定标签
-      item.tags = ['失物招领'];
+      // 根据类型添加正确的标签
+      const itemType = item.itemType || 'lost';
+      item.itemType = itemType;
+      item.tags = [itemType === 'lost' ? '失物' : '招领'];
       item.isLostAndFound = true;
       
       res.json(item);
@@ -110,15 +141,36 @@ module.exports = (app, db, authenticateToken) => {
 
   // 创建失物招领帖子
   app.post('/api/lost-and-found', authenticateToken, async (req, res) => {
-    const { content } = req.body;
+    const { content, itemType = 'lost', itemName, category, location, contactInfo, reward } = req.body;
 
     if (!content) {
       return res.status(400).json({ error: 'Content is required' });
     }
 
+    // 验证itemType
+    if (!['lost', 'found'].includes(itemType)) {
+      return res.status(400).json({ error: 'Invalid item type. Must be "lost" or "found"' });
+    }
+
+    // 构建完整的内容描述
+    let fullContent = content;
+    if (itemName) {
+      fullContent = `物品名称：${itemName}\n${content}`;
+    }
+    if (location) {
+      const locationLabel = itemType === 'lost' ? '丢失地点' : '拾获地点';
+      fullContent += `\n${locationLabel}：${location}`;
+    }
+    if (contactInfo) {
+      fullContent += `\n联系方式：${contactInfo}`;
+    }
+    if (reward && itemType === 'lost') {
+      fullContent += `\n酬谢：${reward}`;
+    }
+
     db.run(
-      'INSERT INTO lost_and_found (author_id, content) VALUES (?, ?)',
-      [req.user.userId, content],
+      'INSERT INTO lost_and_found (author_id, content, item_type) VALUES (?, ?, ?)',
+      [req.user.userId, fullContent, itemType],
       function(err) {
         if (err) {
           return res.status(500).json({ error: 'Failed to create lost and found post' });
@@ -126,9 +178,113 @@ module.exports = (app, db, authenticateToken) => {
 
         res.status(201).json({
           id: this.lastID,
-          message: 'Lost and found post created successfully'
+          itemType,
+          message: `${itemType === 'lost' ? '失物' : '招领'}信息发布成功`
         });
       }
     );
+  });
+
+  // 获取失物招领统计信息
+  app.get('/api/lost-and-found/stats', async (req, res) => {
+    console.log('Lost and Found stats API called');
+    try {
+      // 并行查询各种统计信息
+      const queries = [
+        // 总数
+        new Promise((resolve) => {
+          console.log('Querying total count...');
+          db.get('SELECT COUNT(*) as count FROM lost_and_found', (err, result) => {
+            if (err) {
+              console.error('Error getting total count:', err);
+              resolve(0);
+            } else {
+              console.log('Total count result:', result);
+              resolve(result?.count || 0);
+            }
+          });
+        }),
+        
+        // 失物数量
+        new Promise((resolve) => {
+          console.log('Querying lost count...');
+          db.get('SELECT COUNT(*) as count FROM lost_and_found WHERE item_type = "lost"', (err, result) => {
+            if (err) {
+              console.error('Error getting lost count:', err);
+              resolve(0);
+            } else {
+              console.log('Lost count result:', result);
+              resolve(result?.count || 0);
+            }
+          });
+        }),
+        
+        // 招领数量
+        new Promise((resolve) => {
+          console.log('Querying found count...');
+          db.get('SELECT COUNT(*) as count FROM lost_and_found WHERE item_type = "found"', (err, result) => {
+            if (err) {
+              console.error('Error getting found count:', err);
+              resolve(0);
+            } else {
+              console.log('Found count result:', result);
+              resolve(result?.count || 0);
+            }
+          });
+        }),
+        
+        // 已解决数量
+        new Promise((resolve) => {
+          console.log('Querying resolved count...');
+          db.get('SELECT COUNT(*) as count FROM lost_and_found WHERE is_returned = 1', (err, result) => {
+            if (err) {
+              console.error('Error getting resolved count:', err);
+              resolve(0);
+            } else {
+              console.log('Resolved count result:', result);
+              resolve(result?.count || 0);
+            }
+          });
+        }),
+        
+        // 未解决数量
+        new Promise((resolve) => {
+          console.log('Querying unresolved count...');
+          db.get('SELECT COUNT(*) as count FROM lost_and_found WHERE is_returned = 0', (err, result) => {
+            if (err) {
+              console.error('Error getting unresolved count:', err);
+              resolve(0);
+            } else {
+              console.log('Unresolved count result:', result);
+              resolve(result?.count || 0);
+            }
+          });
+        })
+      ];
+
+      console.log('Executing all queries...');
+      const [total, lost, found, resolved, unresolved] = await Promise.all(queries);
+
+      const statsResult = {
+        total: total || 0,
+        lost: lost || 0,
+        found: found || 0,
+        resolved: resolved || 0,
+        unresolved: unresolved || 0
+      };
+
+      console.log('Stats result:', statsResult);
+      res.json(statsResult);
+    } catch (error) {
+      console.error('Error fetching lost and found stats:', error);
+      // 返回默认值而不是错误
+      res.json({
+        total: 0,
+        lost: 0,
+        found: 0,
+        resolved: 0,
+        unresolved: 0
+      });
+    }
   });
 };

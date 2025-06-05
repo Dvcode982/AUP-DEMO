@@ -4,6 +4,7 @@ import { Check, MapPin, Calendar, MessageCircle, Share2, Clock, User, Tag, Exter
 import { useState } from 'react'
 import { lostAndFoundAPI } from '@/lib/api'
 import { useTranslation } from '../hooks/useTranslation'
+import UserAvatar from './UserAvatar'
 
 interface LostFoundCardProps {
   id: number
@@ -196,12 +197,11 @@ const LostFoundCard = ({
 
               {/* 用户信息 */}
               <div className="flex items-center space-x-3 mb-3">
-                <Image
-                  src={displayAvatar}
+                <UserAvatar 
+                  src={avatar}
                   alt={author}
-                  width={32}
-                  height={32}
-                  className="rounded-full border-2 border-gray-200 dark:border-gray-600"
+                  username={author}
+                  size={32}
                 />
                 <div>
                   <span className="font-medium text-gray-900 dark:text-white text-sm">{author}</span>
@@ -330,12 +330,11 @@ const LostFoundCard = ({
         <div className="p-4 flex-1 flex flex-col">
           {/* 用户信息 */}
           <div className="flex items-center space-x-3 mb-3">
-            <Image
-              src={displayAvatar}
+            <UserAvatar 
+              src={avatar}
               alt={author}
-              width={32}
-              height={32}
-              className="rounded-full border-2 border-gray-200 dark:border-gray-600"
+              username={author}
+              size={32}
             />
             <div className="flex-1 min-w-0">
               <h4 className="font-medium text-gray-900 dark:text-white text-sm truncate">{author}</h4>
