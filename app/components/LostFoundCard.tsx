@@ -148,7 +148,7 @@ const LostFoundCard = ({
   if (viewMode === 'list') {
     return (
       <Link href={`/lost-and-found/${id}`} className="block w-full">
-        <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl border border-gray-200/50 dark:border-gray-700/50 hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-300 hover:shadow-lg p-6">
+        <div className="bg-white/80 dark:bg-gray-800/80 rounded-xl border border-gray-200/50 dark:border-gray-700/50 hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-300 hover:shadow-lg p-6">
           <div className="flex items-start space-x-4">
             {/* 左侧图片 */}
             {displayImage && (
@@ -283,7 +283,7 @@ const LostFoundCard = ({
   // 网格视图 (默认)
   return (
     <Link href={`/lost-and-found/${id}`} className="block w-full h-full group">
-      <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl border border-gray-200/50 dark:border-gray-700/50 hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 h-full flex flex-col overflow-hidden">
+      <div className="bg-white/80 dark:bg-gray-800/80 rounded-xl border border-gray-200/50 dark:border-gray-700/50 hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 h-full flex flex-col overflow-hidden">
         {/* 顶部状态栏 */}
         <div className={`px-4 py-3 ${themeColors.bg} border-b ${themeColors.border}`}>
           <div className="flex items-center justify-between">

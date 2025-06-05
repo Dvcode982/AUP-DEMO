@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import UserAvatar from '../UserAvatar'
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+<<<<<<< HEAD
 import { 
   Smile, 
   ImageIcon, 
@@ -27,10 +28,14 @@ import {
 import EmojiPicker from '../create-post/EmojiPicker'
 import { useTheme } from 'next-themes'
 import { messagesAPI  } from '@/lib/api'
+=======
+import { Send, FileText, Paperclip, Sticker, X } from 'lucide-react'
+import { messagesAPI, topicAggregationAPI } from '@/lib/api'
+>>>>>>> 803e0c25696cfdebff4345d0de587bf1f5b817ed
 import toast from 'react-hot-toast'
 import { EmojiButton } from './EmojiButton'
-import Image from 'next/image'
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+<<<<<<< HEAD
 import {
   getRelativeTime,
   formatTime as formatTimeUtil,
@@ -39,6 +44,9 @@ import {
   shouldGroupMessages,
   isToday
 } from '@/lib/timeUtils'
+=======
+import { useAuth } from '@/app/contexts/AuthContext'
+>>>>>>> 803e0c25696cfdebff4345d0de587bf1f5b817ed
 
 interface Message {
   id: string
@@ -57,8 +65,12 @@ interface Message {
 
 interface ChatWindowProps {
   chatId: string
+  title?: string
+  showUserInfo?: boolean
+  isComment?: boolean
 }
 
+<<<<<<< HEAD
 const initialMessages: Message[] = []
 
 export default function ChatWindow({ chatId }: ChatWindowProps) {
@@ -95,21 +107,38 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
   useEffect(() => {
     setMounted(true)
   }, [])
+=======
+export default function ChatWindow({ chatId, title, showUserInfo = true, isComment = false }: ChatWindowProps) {
+  const { user } = useAuth();
+  const currentUserId = user?.id;
+  const [messages, setMessages] = useState<Message[]>([])
+  const [newMessage, setNewMessage] = useState('')
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [partnerName, setPartnerName] = useState('');
+  const [partnerAvatar, setPartnerAvatar] = useState('/images/lon.jpg');
+  const [pastedImage, setPastedImage] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [selectedImage, setSelectedImage] = useState<string | null>(null)
+>>>>>>> 803e0c25696cfdebff4345d0de587bf1f5b817ed
 
-  // 获取聊天历史
   useEffect(() => {
     async function fetchMessages() {
       if (!chatId) return;
       
       try {
         setLoading(true);
+        console.log('Fetching messages for:', chatId, isComment ? '(comment mode)' : '(chat mode)');
+        
         const data = await messagesAPI.getMessages(chatId);
-        console.log('Received messages data:', data);
+        console.log('Received data:', data);
 
-        if (!data) {
-          throw new Error('Failed to fetch messages');
+        if (!data?.messages) {
+          throw new Error('No messages data received');
         }
 
+<<<<<<< HEAD
         const formattedMessages = (data.messages || []).map((msg: any) => {
           let timestamp;
           try {
@@ -128,8 +157,37 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
             reactions: []
           };
         });
+=======
+        let formattedMessages;
+        if (isComment) {
+          // 评论区：只用 userId 判断 sender
+          formattedMessages = data.messages.map((msg: any) => ({
+            id: msg.id,
+            content: msg.content,
+            type: msg.type || 'text',
+            sender: String(msg.userId) === String(currentUserId) ? 'user' : 'other',
+            timestamp: msg.timestamp || msg.time || msg.created_at,
+            userId: msg.userId,
+            // 修正：优先 msg.username，其次 msg.author，其次 msg.email
+            username: msg.username || msg.author || msg.email || '匿名',
+          }));
+        } else {
+          // 私信
+          formattedMessages = data.messages.map((msg: any) => ({
+            id: msg.id,
+            content: msg.content,
+            type: msg.type || 'text',
+            sender: msg.sender,
+            timestamp: msg.timestamp || msg.created_at,
+            userId: msg.userId,
+            username: msg.username
+          }));
+        }
+>>>>>>> 803e0c25696cfdebff4345d0de587bf1f5b817ed
 
+        console.log('Formatted messages:', formattedMessages);
         setMessages(formattedMessages);
+<<<<<<< HEAD
         
         // 增强聊天伙伴信息
         if (data.partnerName) {
@@ -139,6 +197,13 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
             isOnline: Math.random() > 0.5,
             lastSeen: Math.random() > 0.3 ? '刚刚' : `${Math.floor(Math.random() * 60)}分钟前`
           });
+=======
+
+        // 设置对话信息
+        if (!isComment && data.partnerName) {
+          setPartnerName(data.partnerName);
+          setPartnerAvatar(data.partnerAvatar || '/images/lon.jpg');
+>>>>>>> 803e0c25696cfdebff4345d0de587bf1f5b817ed
         }
 
         // 自动标记对话为已读
@@ -149,14 +214,14 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
           console.error('Failed to mark conversation as read:', err);
         }
       } catch (err) {
-        console.error('获取聊天历史失败:', err);
-        setError('无法加载聊天历史');
+        console.error('Error fetching messages:', err);
+        setError('加载失败');
       } finally {
         setLoading(false);
-        scrollToBottom();
       }
     }
 
+<<<<<<< HEAD
     if (mounted) {
       fetchMessages();
     }
@@ -166,10 +231,13 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
   useEffect(() => {
     scrollToBottom()
   }, [messages])
+=======
+    // 首次加载
+    fetchMessages();
+>>>>>>> 803e0c25696cfdebff4345d0de587bf1f5b817ed
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
+    // 移除自动刷新 setInterval
+  }, [chatId, isComment, currentUserId]);
 
   const handleSendMessage = async () => {
     const hasImage = pastedImage && imagePreview;
@@ -185,9 +253,9 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
       setNewMessage('');
       clearPastedImage();
 
-      // 处理图片消息
       if (hasImage && currentImage) {
         const tempId = `temp-${Date.now()}`;
+<<<<<<< HEAD
         
         try {
           setImageUploading(true);
@@ -206,10 +274,21 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
             }),
             reactions: []
           }]);
+=======
+        const tempMessage: Message = {
+          id: tempId,
+          sender: 'user',
+          content: currentPreview || '',
+          type: 'image',
+          timestamp: new Date().toLocaleString()
+        };
+        setMessages(prev => [...prev, tempMessage]);
+>>>>>>> 803e0c25696cfdebff4345d0de587bf1f5b817ed
 
-          console.log('Preparing to upload image...');
+        try {
           const formData = new FormData();
           formData.append('image', currentImage);
+<<<<<<< HEAD
 
           const uploadResult = await messagesAPI.uploadImage(chatId, formData, (progress) => {
             setUploadProgress(progress);
@@ -243,6 +322,23 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
           } else {
             toast.error('图片发送失败');
           }
+=======
+          const uploadResult = await messagesAPI.uploadImage(chatId, formData);
+
+          const sendFunction = isComment ? messagesAPI.sendMessage : messagesAPI.sendMessage;
+          const response = await sendFunction(chatId, uploadResult.url, 'image');
+
+          setMessages(prev => prev.map(msg => 
+            msg.id === tempId ? {
+              ...msg,
+              id: response.id.toString(),
+              content: uploadResult.url
+            } : msg
+          ));
+        } catch (err) {
+          console.error('图片发送失败:', err);
+          toast.error('图片发送失败');
+>>>>>>> 803e0c25696cfdebff4345d0de587bf1f5b817ed
           setMessages(prev => prev.filter(msg => msg.id !== tempId));
         } finally {
           setImageUploading(false);
@@ -251,8 +347,8 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
         }
       }
 
-      // 处理文本消息
       if (hasText) {
+<<<<<<< HEAD
         const tempTextId = `temp-${Date.now()}-text`;
         try {
           setMessages(prev => [...prev, {
@@ -275,12 +371,56 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
               ...textMessage,
               type: 'text',
               reactions: []
+=======
+        const tempId = `temp-${Date.now()}-text`;
+        // 修正：临时消息加上 username 和 userId
+        const tempMessage: Message & { username?: string; userId?: string } = {
+          id: tempId,
+          content: currentMessage,
+          type: 'text',
+          sender: 'user',
+          timestamp: new Date().toLocaleTimeString(),
+          username: user?.username || user?.email || '我',
+          userId: user?.id ? String(user.id) : undefined,
+        };
+        setMessages(prev => [...prev, tempMessage]);
+
+        try {
+          const sendFunction = isComment ? messagesAPI.sendMessage : messagesAPI.sendMessage;
+          const response = await sendFunction(chatId, currentMessage, 'text');
+
+          setMessages(prev => prev.map(msg => 
+            msg.id === tempId ? {
+              ...msg,
+              id: response.id.toString(),
+              sender: 'user',
+              // 保持 username 和 userId 不变
+>>>>>>> 803e0c25696cfdebff4345d0de587bf1f5b817ed
             } : msg
           ));
+          
+          // 如果是评论，记录用户的评论行为
+          if (isComment && chatId.startsWith('post-')) {
+            try {
+              const postId = chatId.replace('post-', '');
+              await topicAggregationAPI.trackInteraction({
+                postId: postId,
+                topic: '校园杂谈', // 默认主题，理想情况下应该从帖子数据获取
+                actionType: 'comment'
+              });
+              console.log('Tracked comment interaction for post:', postId);
+            } catch (trackError) {
+              console.error('Failed to track comment interaction:', trackError);
+            }
+          }
         } catch (err) {
           console.error('文本发送失败:', err);
           toast.error('发送失败');
+<<<<<<< HEAD
           setMessages(prev => prev.filter(msg => msg.id !== tempTextId));
+=======
+          setMessages(prev => prev.filter(msg => msg.id !== tempId));
+>>>>>>> 803e0c25696cfdebff4345d0de587bf1f5b817ed
         }
       }
     } catch (err) {
@@ -288,6 +428,14 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
       toast.error('发送失败');
     }
   };
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -300,7 +448,6 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
     setNewMessage(prev => prev + emoji);
   };
 
-  // 处理粘贴事件
   const handlePaste = async (e: React.ClipboardEvent) => {
     const items = e.clipboardData?.items;
     const item = items?.[0];
@@ -316,15 +463,12 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
     }
   };
 
-  // 清除已粘贴的图片
   const clearPastedImage = () => {
-    if (imagePreview) {
-      URL.revokeObjectURL(imagePreview);
-    }
     setPastedImage(null);
     setImagePreview(null);
   };
 
+<<<<<<< HEAD
   // 消息反应
   const handleReaction = (messageId: string, emoji: string) => {
     setMessages(prev => prev.map(msg => {
@@ -445,6 +589,87 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
             })}
           </div>
         )}
+=======
+  const userColorMap: Record<string, string> = {};
+  const colorPalette = [
+    'text-blue-400',
+    'text-green-400',
+    'text-pink-400',
+    'text-purple-400',
+    'text-cyan-400',
+    'text-yellow-300',
+    'text-amber-400',
+    'text-rose-400',
+    'text-lime-400',
+    'text-orange-400',
+  ];
+  function getUserColor(username: string | undefined, userId: string | undefined) {
+    if (!username && !userId) return colorPalette[0];
+    const key = String(userId || username);
+    if (!userColorMap[key]) {
+      // hash分配颜色
+      let hash = 0;
+      for (let i = 0; i < key.length; i++) hash = key.charCodeAt(i) + ((hash << 5) - hash);
+      const idx = Math.abs(hash) % colorPalette.length;
+      userColorMap[key] = colorPalette[idx];
+    }
+    return userColorMap[key];
+  }
+
+  const renderMessageContent = (message: Message & { username?: string; userId?: string }) => {
+    if (message.type === 'image') {
+      return (
+        <div className="relative cursor-pointer" onClick={() => setSelectedImage(message.content)}>
+          <img
+            src={message.content}
+            alt="图片消息"
+            className="rounded-lg max-w-[240px] hover:opacity-90 transition-opacity"
+            style={{ maxHeight: '300px', objectFit: 'contain' }}
+            onError={(e) => {
+              console.warn('Image load warning:', message.content.substring(0, 100) + '...');
+              (e.currentTarget as HTMLImageElement).src = message.content;
+              e.currentTarget.onerror = null;
+            }}
+            loading="lazy"
+          />
+        </div>
+      );
+    }
+    const visibleContent = (message.content || '').replace(/[\s\u3000\t\r\n]+/g, '');
+    if (isComment) {
+      const isUser = message.sender === 'user';
+      const colorClass = getUserColor(message.username, message.userId);
+      return (
+        <div className="min-w-[48px] max-w-2xl mb-2">
+          <span className={`font-bold text-lg align-middle ${colorClass}`}>
+            {message.username || '匿名'}
+          </span>
+          <span className="font-bold text-lg align-middle text-gray-300">：</span>
+          <span className="ml-1 text-base align-middle text-gray-100">{visibleContent.length > 0 ? visibleContent : <span className="opacity-60">(无内容)</span>}</span>
+        </div>
+      );
+    }
+    // 私聊消息：user消息蓝底色
+    return (
+      <div
+        className={`
+          ${
+            !isComment && message.sender === 'user'
+              ? 'bg-blue-600 text-white rounded-2xl rounded-tr-sm'
+              : 'bg-gray-700 text-gray-200 rounded-2xl rounded-tl-sm'
+          }
+          p-3 shadow-md max-w-xs lg:max-w-md xl:max-w-lg min-w-[48px]
+        `}
+        style={{
+          wordBreak: 'break-word',
+          overflowWrap: 'anywhere',
+          whiteSpace: 'pre-line',
+        }}
+      >
+        <p className="text-sm text-wrap-anywhere min-h-[1.5em]">
+          {visibleContent.length > 0 ? visibleContent : <span className="opacity-60">(无内容)</span>}
+        </p>
+>>>>>>> 803e0c25696cfdebff4345d0de587bf1f5b817ed
       </div>
     );
   };
@@ -523,6 +748,7 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
 
   return (
     <>
+<<<<<<< HEAD
       <div className="h-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg overflow-hidden flex flex-col">
         {/* 聊天头部 */}
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 border-b border-gray-200/50 dark:border-gray-700/50 p-4">
@@ -558,6 +784,34 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
                 )}
                 {isTyping && (
                   <p className="text-sm text-blue-500 animate-pulse">正在输入...</p>
+=======
+      <div className="relative flex flex-col h-full border border-border rounded-2xl overflow-hidden bg-white dark:bg-gray-800 bg-opacity-70 dark:bg-opacity-70">
+        <div className="fixed-header backdrop-blur-md absolute top-0 left-0 right-0 h-[48px] z-30">
+          <div className="p-2 flex items-center bg-white/70 dark:bg-gray-800/70 h-full">
+            <div className="absolute top-0 left-0 right-0 h-8 flex items-center px-4 mt-2">
+              <div className="w-4 h-4 bg-red-500 rounded-full mr-2"></div>
+              <div className="w-4 h-4 bg-yellow-500 rounded-full mr-2"></div>
+              <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+
+              <div className="flex items-center mx-auto px-2">
+                {showUserInfo && !isComment ? (
+                  <>
+                    <Avatar className="h-7 w-7 mr-3">
+                      <AvatarImage 
+                        src={partnerAvatar} 
+                        alt={partnerName} 
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).src = '/images/lon.jpg';
+                          e.currentTarget.onerror = null;
+                        }} 
+                      />
+                      <AvatarFallback>{partnerName?.[0] || "?"}</AvatarFallback>
+                    </Avatar>
+                    <h2 className="font-medium text-gray-800 dark:text-gray-200">{partnerName || '加载中...'}</h2>
+                  </>
+                ) : (
+                  <h2 className="font-medium text-gray-800 dark:text-gray-200">{title || '评论区'}</h2>
+>>>>>>> 803e0c25696cfdebff4345d0de587bf1f5b817ed
                 )}
               </div>
             </div>
@@ -567,10 +821,18 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
               </Button>
             </div>
           </div>
+<<<<<<< HEAD
         </div>
 
         {/* 聊天内容区域 */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
+=======
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500"></div>
+        </div>
+
+        {/* 恢复原本的内容区样式 */}
+        <div className="relative z-10 flex-grow overflow-y-auto p-4 pt-[52px] text-white">
+>>>>>>> 803e0c25696cfdebff4345d0de587bf1f5b817ed
           {loading ? (
             <div className="flex justify-center items-center h-full">
               <div className="text-center">
@@ -603,6 +865,7 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
               </div>
             </div>
           ) : (
+<<<<<<< HEAD
             messages.map((message, index) => {
               const showAvatar = index === 0 || messages[index - 1].sender !== message.sender;
               const currentTimestamp = getMessageTimestamp(message);
@@ -675,10 +938,52 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
                 </div>
               );
             })
+=======
+            messages.map((message, idx) => (
+              <div key={message.id} className="mb-4">
+                {isComment ? (
+                  <>
+                    {renderMessageContent(message)}
+                    <div className="flex items-center gap-4 mt-1">
+                      <span className="text-xs text-gray-400">{message.timestamp}</span>
+                      <span className="text-xs text-amber-300">#{idx + 1}楼</span>
+                    </div>
+                  </>
+                ) : (
+                  <div className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'} items-start mt-6`}>
+                    {message.sender !== 'user' && (
+                      <Avatar className="h-8 w-8 mr-2 flex-shrink-0">
+                        <AvatarImage src="/images/lon.jpg" alt="User avatar" />
+                        <AvatarFallback>U</AvatarFallback>
+                      </Avatar>
+                    )}
+                    <div className="flex flex-col">
+                      <div className={message.type === 'image' ? 'max-w-[240px]' : 'max-w-xs lg:max-w-md xl:max-w-lg'}>
+                        {renderMessageContent(message)}
+                      </div>
+                      <span className={`text-xs text-gray-700 dark:text-gray-300 mt-1 ${message.sender === 'user' ? 'text-right' : 'text-left'}`}>
+                        {message.timestamp}
+                      </span>
+                    </div>
+                    {message.sender === 'user' && (
+                      <Avatar className="h-8 w-8 ml-2 flex-shrink-0">
+                        <AvatarImage 
+                          src="/images/avt.jpg"
+                          alt="User avatar"
+                        />
+                        <AvatarFallback>U</AvatarFallback>
+                      </Avatar>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))
+>>>>>>> 803e0c25696cfdebff4345d0de587bf1f5b817ed
           )}
           <div ref={messagesEndRef} />
         </div>
 
+<<<<<<< HEAD
         {/* 输入区域 */}
         <div className="border-t border-gray-200/50 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-800/50 p-4">
           {/* 上传进度显示 */}
@@ -702,6 +1007,9 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
           )}
 
           {/* 图片预览 */}
+=======
+        <div className="p-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-700 mt-auto text-white bg-opacity-60 dark:bg-opacity-60">
+>>>>>>> 803e0c25696cfdebff4345d0de587bf1f5b817ed
           {imagePreview && (
             <div className="mb-3 relative inline-block">
               <img 
@@ -771,6 +1079,7 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
         </div>
       </div>
 
+<<<<<<< HEAD
       {/* 上下文菜单 */}
       {contextMenu && (
         <div
@@ -821,6 +1130,8 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
       )}
 
       {/* 图片预览对话框 */}
+=======
+>>>>>>> 803e0c25696cfdebff4345d0de587bf1f5b817ed
       <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
         <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 bg-transparent border-0">
           <DialogTitle className="sr-only">查看图片</DialogTitle>
