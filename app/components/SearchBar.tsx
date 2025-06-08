@@ -17,6 +17,7 @@ const SearchBar = ({ onSearch, placeholder, resultCount }: SearchBarProps = {}) 
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
+  const [pendingSearch, setPendingSearch] = useState<string | null>(null);
   const pathname = usePathname();
   const { t } = useTranslation();
   
@@ -53,6 +54,22 @@ const SearchBar = ({ onSearch, placeholder, resultCount }: SearchBarProps = {}) 
   const popularSearches = isLostAndFound 
     ? ['手机', '钥匙', '钱包', '身份证', '眼镜', '耳机']
     : ['学习', '生活', '技术', '兼职'];
+
+  // 自动搜索 useEffect
+  useEffect(() => {
+    if (pendingSearch && searchQuery === pendingSearch) {
+      if (onSearch) {
+        onSearch(pendingSearch);
+      } else {
+        if (isLostAndFound) {
+          window.location.href = `/lost-and-found?search=${encodeURIComponent(pendingSearch)}`;
+        } else {
+          window.location.href = `/?search=${encodeURIComponent(pendingSearch)}`;
+        }
+      }
+      setPendingSearch(null);
+    }
+  }, [searchQuery, pendingSearch]);
 
   if (!mounted) return null;
 
@@ -179,7 +196,7 @@ const SearchBar = ({ onSearch, placeholder, resultCount }: SearchBarProps = {}) 
                     key={index}
                     onClick={() => {
                       setSearchQuery(term);
-                      handleSearch();
+                      setPendingSearch(term);
                     }}
                     className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                   >

@@ -66,6 +66,109 @@ module.exports = (app, db, authenticateToken) => {
     });
   });
 
+  // 获取失物招领统计信息 - 移到前面以避免路由冲突
+  app.get('/api/lost-and-found/stats', async (req, res) => {
+    console.log('Lost and Found stats API called');
+    try {
+      // 并行查询各种统计信息
+      const queries = [
+        // 总数
+        new Promise((resolve) => {
+          console.log('Querying total count...');
+          db.get('SELECT COUNT(*) as count FROM lost_and_found', (err, result) => {
+            if (err) {
+              console.error('Error getting total count:', err);
+              resolve(0);
+            } else {
+              console.log('Total count result:', result);
+              resolve(result?.count || 0);
+            }
+          });
+        }),
+        
+        // 失物数量
+        new Promise((resolve) => {
+          console.log('Querying lost count...');
+          db.get('SELECT COUNT(*) as count FROM lost_and_found WHERE item_type = "lost"', (err, result) => {
+            if (err) {
+              console.error('Error getting lost count:', err);
+              resolve(0);
+            } else {
+              console.log('Lost count result:', result);
+              resolve(result?.count || 0);
+            }
+          });
+        }),
+        
+        // 招领数量
+        new Promise((resolve) => {
+          console.log('Querying found count...');
+          db.get('SELECT COUNT(*) as count FROM lost_and_found WHERE item_type = "found"', (err, result) => {
+            if (err) {
+              console.error('Error getting found count:', err);
+              resolve(0);
+            } else {
+              console.log('Found count result:', result);
+              resolve(result?.count || 0);
+            }
+          });
+        }),
+        
+        // 已解决数量
+        new Promise((resolve) => {
+          console.log('Querying resolved count...');
+          db.get('SELECT COUNT(*) as count FROM lost_and_found WHERE is_returned = 1', (err, result) => {
+            if (err) {
+              console.error('Error getting resolved count:', err);
+              resolve(0);
+            } else {
+              console.log('Resolved count result:', result);
+              resolve(result?.count || 0);
+            }
+          });
+        }),
+        
+        // 未解决数量
+        new Promise((resolve) => {
+          console.log('Querying unresolved count...');
+          db.get('SELECT COUNT(*) as count FROM lost_and_found WHERE is_returned = 0', (err, result) => {
+            if (err) {
+              console.error('Error getting unresolved count:', err);
+              resolve(0);
+            } else {
+              console.log('Unresolved count result:', result);
+              resolve(result?.count || 0);
+            }
+          });
+        })
+      ];
+
+      console.log('Executing all queries...');
+      const [total, lost, found, resolved, unresolved] = await Promise.all(queries);
+
+      const statsResult = {
+        total: total || 0,
+        lost: lost || 0,
+        found: found || 0,
+        resolved: resolved || 0,
+        unresolved: unresolved || 0
+      };
+
+      console.log('Stats result:', statsResult);
+      res.json(statsResult);
+    } catch (error) {
+      console.error('Error fetching lost and found stats:', error);
+      // 返回默认值而不是错误
+      res.json({
+        total: 0,
+        lost: 0,
+        found: 0,
+        resolved: 0,
+        unresolved: 0
+      });
+    }
+  });
+
   // 标记物品已找到/已归还
   app.put('/api/lost-and-found/:id/return', authenticateToken, async (req, res) => {
     const { id } = req.params;
@@ -185,106 +288,4 @@ module.exports = (app, db, authenticateToken) => {
     );
   });
 
-  // 获取失物招领统计信息
-  app.get('/api/lost-and-found/stats', async (req, res) => {
-    console.log('Lost and Found stats API called');
-    try {
-      // 并行查询各种统计信息
-      const queries = [
-        // 总数
-        new Promise((resolve) => {
-          console.log('Querying total count...');
-          db.get('SELECT COUNT(*) as count FROM lost_and_found', (err, result) => {
-            if (err) {
-              console.error('Error getting total count:', err);
-              resolve(0);
-            } else {
-              console.log('Total count result:', result);
-              resolve(result?.count || 0);
-            }
-          });
-        }),
-        
-        // 失物数量
-        new Promise((resolve) => {
-          console.log('Querying lost count...');
-          db.get('SELECT COUNT(*) as count FROM lost_and_found WHERE item_type = "lost"', (err, result) => {
-            if (err) {
-              console.error('Error getting lost count:', err);
-              resolve(0);
-            } else {
-              console.log('Lost count result:', result);
-              resolve(result?.count || 0);
-            }
-          });
-        }),
-        
-        // 招领数量
-        new Promise((resolve) => {
-          console.log('Querying found count...');
-          db.get('SELECT COUNT(*) as count FROM lost_and_found WHERE item_type = "found"', (err, result) => {
-            if (err) {
-              console.error('Error getting found count:', err);
-              resolve(0);
-            } else {
-              console.log('Found count result:', result);
-              resolve(result?.count || 0);
-            }
-          });
-        }),
-        
-        // 已解决数量
-        new Promise((resolve) => {
-          console.log('Querying resolved count...');
-          db.get('SELECT COUNT(*) as count FROM lost_and_found WHERE is_returned = 1', (err, result) => {
-            if (err) {
-              console.error('Error getting resolved count:', err);
-              resolve(0);
-            } else {
-              console.log('Resolved count result:', result);
-              resolve(result?.count || 0);
-            }
-          });
-        }),
-        
-        // 未解决数量
-        new Promise((resolve) => {
-          console.log('Querying unresolved count...');
-          db.get('SELECT COUNT(*) as count FROM lost_and_found WHERE is_returned = 0', (err, result) => {
-            if (err) {
-              console.error('Error getting unresolved count:', err);
-              resolve(0);
-            } else {
-              console.log('Unresolved count result:', result);
-              resolve(result?.count || 0);
-            }
-          });
-        })
-      ];
-
-      console.log('Executing all queries...');
-      const [total, lost, found, resolved, unresolved] = await Promise.all(queries);
-
-      const statsResult = {
-        total: total || 0,
-        lost: lost || 0,
-        found: found || 0,
-        resolved: resolved || 0,
-        unresolved: unresolved || 0
-      };
-
-      console.log('Stats result:', statsResult);
-      res.json(statsResult);
-    } catch (error) {
-      console.error('Error fetching lost and found stats:', error);
-      // 返回默认值而不是错误
-      res.json({
-        total: 0,
-        lost: 0,
-        found: 0,
-        resolved: 0,
-        unresolved: 0
-      });
-    }
-  });
 };

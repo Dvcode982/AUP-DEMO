@@ -3,29 +3,94 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 let sessionHistory: { role: string, content: string }[] = []
 
 // 提取搜索关键词
-function extractSearchKeywords(question: string) {
-  const searchPatterns = [
-    // 活动相关
-    { pattern: /羽毛球|乒乓球|篮球|足球|跑步|健身|约球|运动/, keywords: ['羽毛球', '篮球', '足球', '乒乓球', '跑步', '健身', '运动'] },
-    // 失物招领
-    { pattern: /失物|招领|丢|捡|遗失|拾到|钥匙|校园卡|钱包|手机/, keywords: ['失物', '招领', '钥匙', '校园卡', '钱包', '手机'] },
-    // 学习相关
-    { pattern: /课程|作业|考试|论文|学习|图书馆/, keywords: ['课程', '作业', '考试', '论文', '学习'] },
-    // 生活相关
-    { pattern: /吃饭|购物|电影|聚会|旅行|兼职|租房/, keywords: ['吃饭', '购物', '电影', '聚会', '兼职', '租房'] }
+function extractSearchKeywords(question: string): string | null {
+  const lowerQuestion = question.toLowerCase()
+  
+  // 失物招领相关关键词（扩展）
+  const lostAndFoundKeywords = [
+    '失物', '招领', '丢', '找', '寻', '捡', '遗失', '拾到', '归还', 
+    '丢失', '遗忘', '不见了', '找不到', '掉了', '落在', '忘记', 
+    '寻找', '寻物', '失而复得', '拾金不昧', '物归原主', '认领', 
+    '失主', '领取', '捡到'
   ]
-
-  for (const { pattern, keywords } of searchPatterns) {
-    if (pattern.test(question)) {
-      // 找到匹配的具体关键词
-      const matchedKeywords = keywords.filter(keyword => question.includes(keyword))
-      if (matchedKeywords.length > 0) {
-        return matchedKeywords[0] // 返回第一个匹配的关键词
+  
+  // 物品关键词（大幅扩展）
+  const itemKeywords = [
+    '校园卡', '钥匙', '钱包', '手机', '充电器', '耳机', '书包', '雨伞', 
+    '水杯', '笔记本', '眼镜', '手表', '身份证', '银行卡', '公交卡', 
+    'u盘', '移动硬盘', '电脑', '平板', '相机', '项链', '戒指', 
+    '手镯', '耳环', '手链', '包', '背包', '双肩包', '单肩包', 
+    '化妆包', '文具', '笔', '书', '课本', '作业本', '保温杯', 
+    '饭盒', '餐具', '衣服', '外套', '帽子', '围巾', '手套', 
+    '鞋', '袜子', '裤子', 't恤', '毛衣', '运动鞋', '凉鞋', '拖鞋'
+  ]
+  
+  // 地点关键词
+  const locationKeywords = [
+    '宿舍', '食堂', '图书馆', '教学楼', '操场', '实验室', '停车场', 
+    '校门', '咖啡厅', '便利店', '超市', '洗衣房', '浴室', '厕所', 
+    '楼梯', '电梯', '走廊', '教室', '办公室', '医务室', '体育馆', 
+    '游泳池', '网球场', '篮球场', '足球场', '跑道', '健身房', 
+    '自习室', '机房', '实训室'
+  ]
+  
+  // 检查是否包含失物招领相关词汇
+  const hasLostFoundKeywords = lostAndFoundKeywords.some(keyword => lowerQuestion.includes(keyword))
+  const hasItemKeywords = itemKeywords.some(keyword => lowerQuestion.includes(keyword))
+  const hasLocationKeywords = locationKeywords.some(keyword => lowerQuestion.includes(keyword))
+  
+  // 如果是失物招领相关查询
+  if (hasLostFoundKeywords || hasItemKeywords) {
+    // 提取最相关的关键词
+    let extractedKeyword = ''
+    
+    // 优先提取物品名称
+    for (const item of itemKeywords) {
+      if (lowerQuestion.includes(item)) {
+        extractedKeyword = item
+        break
       }
-      return keywords[0] // 如果没有具体匹配，返回第一个相关关键词
+    }
+    
+    // 如果没有具体物品，提取失物招领关键词
+    if (!extractedKeyword) {
+      for (const keyword of lostAndFoundKeywords) {
+        if (lowerQuestion.includes(keyword)) {
+          extractedKeyword = keyword
+          break
+        }
+      }
+    }
+    
+    // 如果有地点信息，组合关键词
+    if (hasLocationKeywords) {
+      for (const location of locationKeywords) {
+        if (lowerQuestion.includes(location)) {
+          extractedKeyword = extractedKeyword ? `${location} ${extractedKeyword}` : location
+          break
+        }
+      }
+    }
+    
+    return extractedKeyword || '失物招领'
+  }
+  
+  // 通用搜索关键词
+  const searchIndicators = ['找', '搜', '查', '看', '有没有', '哪里', '怎么', '什么']
+  const hasSearchIntent = searchIndicators.some(indicator => lowerQuestion.includes(indicator))
+  
+  if (hasSearchIntent) {
+    // 提取可能的搜索关键词（去除常见停用词）
+    const stopWords = ['的', '了', '在', '是', '我', '你', '他', '她', '它', '们', '这', '那', '一个', '有', '没', '吗', '呢', '啊', '吧']
+    const words = lowerQuestion.split(/[，。！？\s]+/).filter(word => 
+      word.length > 1 && !stopWords.includes(word) && !searchIndicators.includes(word)
+    )
+    
+    if (words.length > 0) {
+      return words[0] // 返回第一个有意义的词
     }
   }
-
+  
   return null
 }
 
@@ -102,7 +167,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 3. 专注于问答和建议
 4. 使用日常对话语气，像朋友一样交流
 
-${statsInfo ? `当前搜索"${statsInfo.keyword}"找到了${statsInfo.total}个相关帖子。` : ''}`
+特殊处理：
+- 如果用户询问失物招领相关问题（如丢失物品、寻找失物、招领物品等），优先推荐使用失物招领页面的AI智能推荐功能
+- 失物招领相关回复应该包含鼓励和帮助的语气，比如"别担心，我来帮你在失物招领里找找！"
+
+${statsInfo ? `当前搜索"${statsInfo.keyword}"找到了${statsInfo.total}个相关内容。` : ''}`
     }
     
     const messages = [systemPrompt, ...sessionHistory]

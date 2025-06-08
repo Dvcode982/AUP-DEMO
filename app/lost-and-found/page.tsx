@@ -5,8 +5,9 @@ import Sidebar from '../components/Sidebar'
 import LostFoundCard from '../components/LostFoundCard'
 import SearchBar from '../components/SearchBar'
 import FloatingActionButton from '../components/FloatingActionButton'
+import SmartRecommendations from '../components/SmartRecommendations'
 import { lostAndFoundAPI } from '@/lib/api'
-import { Filter, Grid3X3, List, Calendar, MapPin, Tag, Package } from 'lucide-react'
+import { Filter, Grid3X3, List, Calendar, MapPin, Tag, Package, Sparkles, TrendingUp } from 'lucide-react'
 import { useTranslation } from '../hooks/useTranslation'
 
 interface FilterState {
@@ -47,6 +48,8 @@ export default function LostAndFound() {
   const [searchQuery, setSearchQuery] = useState('')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [showFilters, setShowFilters] = useState(false)
+  const [showAIRecommendations, setShowAIRecommendations] = useState(false)
+  const [aiTriggered, setAiTriggered] = useState(false)
   const [filters, setFilters] = useState<FilterState>({
     itemType: 'all',
     status: 'all',
@@ -83,6 +86,32 @@ export default function LostAndFound() {
     }
     fetchItems(searchParam || '');
     fetchStats();
+  }, [])
+
+  // 监听AI助手的智能推荐事件
+  useEffect(() => {
+    const handleAISmartRecommend = (event: any) => {
+      const { keyword } = event.detail
+      console.log('失物招领页面收到AI智能推荐请求:', keyword)
+      
+      // 设置AI触发状态
+      setAiTriggered(true)
+      
+      // 切换到AI推荐模式
+      setShowAIRecommendations(true)
+      setSearchQuery(keyword)
+      
+      // 清除AI触发状态
+      setTimeout(() => {
+        setAiTriggered(false)
+      }, 3000)
+    }
+    
+    window.addEventListener('aiSmartRecommend', handleAISmartRecommend)
+    
+    return () => {
+      window.removeEventListener('aiSmartRecommend', handleAISmartRecommend)
+    }
   }, [])
 
   // 只要帖子数据变化就刷新统计
@@ -147,41 +176,30 @@ export default function LostAndFound() {
     }
   }
 
-  // 处理筛选器变化
-  const handleFilterChange = (filterType: keyof FilterState, value: string) => {
-    const newFilters = { ...filters, [filterType]: value };
-    setFilters(newFilters);
-    
-    // 如果是类型筛选，重新获取数据
-    if (filterType === 'itemType') {
-      fetchItems(searchQuery, value !== 'all' ? value : undefined);
-    }
-  }
-
   // 应用筛选器
-  const applyFilters = (filteredPosts: LostFoundPost[]) => {
+  const applyFilters = (filteredPosts: LostFoundPost[], customFilters = filters) => {
     return filteredPosts.filter((post: LostFoundPost) => {
       // 物品类型筛选
-      if (filters.itemType !== 'all' && post.itemType !== filters.itemType) {
+      if (customFilters.itemType !== 'all' && post.itemType !== customFilters.itemType) {
         return false
       }
       
       // 状态筛选
-      if (filters.status === 'active' && post.isReturned) {
+      if (customFilters.status === 'active' && post.isReturned) {
         return false
       }
-      if (filters.status === 'resolved' && !post.isReturned) {
+      if (customFilters.status === 'resolved' && !post.isReturned) {
         return false
       }
       
       // 时间筛选 (这里需要根据实际时间字段调整)
-      if (filters.timeRange !== 'all') {
+      if (customFilters.timeRange !== 'all') {
         const postDate = new Date(post.time);
         const now = new Date();
         const diffTime = Math.abs(now.getTime() - postDate.getTime());
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         
-        switch (filters.timeRange) {
+        switch (customFilters.timeRange) {
           case 'today':
             if (diffDays > 1) return false;
             break;
@@ -196,6 +214,35 @@ export default function LostAndFound() {
       
       return true;
     });
+  }
+
+  // 处理筛选器变化
+  const handleFilterChange = async (filterType: keyof FilterState, value: string) => {
+    const newFilters = { ...filters, [filterType]: value };
+    setFilters(newFilters);
+
+    // 如果是类型筛选，重新获取数据并用新filters过滤
+    if (filterType === 'itemType') {
+      let type: 'lost' | 'found' | undefined = undefined;
+      if (value === 'lost' || value === 'found') {
+        type = value;
+      }
+      const data = await lostAndFoundAPI.getLostAndFoundItems(searchQuery, type);
+      const postsWithAvatars = data.map((post: any) => ({
+        ...post,
+        avatar: post.avatar || '/placeholder.svg?height=40&width=40',
+        postType: 'lostAndFound',
+        itemType: post.itemType || 'lost',
+        itemName: post.itemName || post.title,
+        content: post.content || post.description,
+        comments: post.comments || 0,
+        shares: post.shares || 0,
+        views: post.views || 0,
+        likes: post.likes || 0
+      }));
+      setLostAndFoundPosts(applyFilters(postsWithAvatars, newFilters));
+      await fetchStats();
+    }
   }
 
   const filteredPosts = applyFilters(lostAndFoundPosts);
@@ -280,6 +327,28 @@ export default function LostAndFound() {
                         {type.label}
                       </button>
                     ))}
+                    
+                    {/* AI推荐按钮 */}
+                    <button
+                      onClick={() => {
+                        setShowAIRecommendations(!showAIRecommendations)
+                        if (!showAIRecommendations) {
+                          setAiTriggered(true)
+                          setTimeout(() => setAiTriggered(false), 2000)
+                        }
+                      }}
+                      className={`flex items-center space-x-1 px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 ${
+                        showAIRecommendations
+                          ? aiTriggered
+                            ? 'bg-gradient-to-r from-green-500 to-blue-500 text-white animate-pulse'
+                            : 'bg-purple-500 text-white'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-purple-100 dark:hover:bg-purple-900/30'
+                      }`}
+                    >
+                      <Sparkles className={`w-3 h-3 ${aiTriggered ? 'animate-spin' : ''}`} />
+                      <span>AI推荐</span>
+                      {aiTriggered && <span className="text-xs">🤖</span>}
+                    </button>
                   </div>
                 </div>
 
@@ -372,6 +441,28 @@ export default function LostAndFound() {
         {/* 内容区域 */}
         <div className="flex-1 overflow-auto p-4">
           <div className="max-w-7xl mx-auto">
+            {/* AI推荐提示 */}
+            {showAIRecommendations && searchQuery && (
+              <div className="mb-6 px-4 py-3 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg border border-purple-200 dark:border-purple-700/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <TrendingUp className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                    <h3 className="text-lg font-semibold text-purple-900 dark:text-purple-100">
+                      🎯 失物招领AI智能推荐
+                    </h3>
+                  </div>
+                  {aiTriggered && (
+                    <span className="text-sm text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-800/30 px-2 py-1 rounded-full">
+                      🤖 AI助手推荐
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-purple-700 dark:text-purple-300 mt-1">
+                  基于 "<span className="font-medium">{searchQuery}</span>" 为您智能推荐最相关的失物招领信息
+                </p>
+              </div>
+            )}
+            
             {loading ? (
               <div className="flex items-center justify-center h-64">
                 <div className="text-center">
@@ -379,7 +470,21 @@ export default function LostAndFound() {
                   <p className="text-gray-500 dark:text-gray-400">{t('loading')}</p>
                 </div>
               </div>
+            ) : showAIRecommendations ? (
+              /* AI推荐模式 */
+              <SmartRecommendations
+                query={searchQuery}
+                title="失物招领智能推荐"
+                maxItems={12}
+                showHeader={false}
+                className="w-full"
+                type="lostAndFound"
+                onStatsUpdate={(stats) => {
+                  console.log('AI推荐统计:', stats)
+                }}
+              />
             ) : filteredPosts.length > 0 ? (
+              /* 普通列表模式 */
               <div className={
                 viewMode === 'grid' 
                   ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
@@ -394,6 +499,7 @@ export default function LostAndFound() {
                 ))}
               </div>
             ) : (
+              /* 空状态 */
               <div className="text-center py-16">
                 <div className="max-w-md mx-auto">
                   <div className="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -404,17 +510,37 @@ export default function LostAndFound() {
                   </h3>
                   <p className="text-gray-500 dark:text-gray-400 mb-6">
                     {searchQuery 
-                      ? t('lostFound.tryOtherKeywords') || '试试其他关键词' 
-                      : t('lostFound.noItemsDesc') || '还没有人发布失物招领信息'
+                      ? (
+                        <>
+                          {t('lostFound.tryOtherKeywords') || '试试其他关键词'}
+                          <br />
+                          <span className="text-purple-600 dark:text-purple-400">或者点击"AI推荐"获取智能建议</span>
+                        </>
+                      ) : t('lostFound.noItemsDesc') || '还没有人发布失物招领信息'
                     }
                   </p>
-                  <button
-                    onClick={() => window.location.href = '/create-lost-found'}
-                    className="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors duration-200"
-                  >
-                    <Package className="w-4 h-4 mr-2" />
-                    {t('lostFound.publishPost')}
-                  </button>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <button
+                      onClick={() => window.location.href = '/create-lost-found'}
+                      className="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors duration-200"
+                    >
+                      <Package className="w-4 h-4 mr-2" />
+                      {t('lostFound.publishPost')}
+                    </button>
+                    {searchQuery && (
+                      <button
+                        onClick={() => {
+                          setShowAIRecommendations(true)
+                          setAiTriggered(true)
+                          setTimeout(() => setAiTriggered(false), 2000)
+                        }}
+                        className="inline-flex items-center px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors duration-200"
+                      >
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        尝试AI推荐
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             )}

@@ -13,6 +13,7 @@ interface SmartRecommendationsProps {
   showHeader?: boolean
   className?: string
   onStatsUpdate?: (stats: { total: number, displayed: number, query?: string }) => void
+  type?: string
 }
 
 export default function SmartRecommendations({
@@ -22,7 +23,8 @@ export default function SmartRecommendations({
   maxItems = 6,
   showHeader = true,
   className = '',
-  onStatsUpdate
+  onStatsUpdate,
+  type
 }: SmartRecommendationsProps) {
   const [recommendations, setRecommendations] = useState<any[]>([])
   const [totalCount, setTotalCount] = useState(0)
@@ -42,6 +44,7 @@ export default function SmartRecommendations({
       const params = new URLSearchParams()
       if (query) params.append('query', query)
       if (userId) params.append('userId', userId)
+      if (type) params.append('type', type)
       
       const response = await fetch(`/api/smart-recommendations?${params.toString()}`)
       
