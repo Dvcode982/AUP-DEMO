@@ -125,7 +125,7 @@ export default function Feedback() {
   return (
     <div className={`flex h-screen ${themeClasses.background}`}>
       <Sidebar />
-      <main className="flex-1 p-4 overflow-hidden">
+      <main className="flex-1 p-4 overflow-y-auto custom-scrollbar">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center space-x-3 mb-6">
             <MessageSquare className={`w-8 h-8 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`} />

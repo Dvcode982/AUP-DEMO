@@ -1,21 +1,38 @@
 'use client'
 import Sidebar from "../components/Sidebar"
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTranslation } from '../hooks/useTranslation';
 
 export default function Settings() {
-    const [notifications, setNotifications] = useState(true);
-    const [emailNotifications, setEmailNotifications] = useState(true);
     const { language, setLanguage } = useLanguage();
     const [theme, setTheme] = useState('light');
-    const [fontSize, setFontSize] = useState('medium');
-    const [profileVisibility, setProfileVisibility] = useState('public');
-    const [onlineStatus, setOnlineStatus] = useState(true);
-    const [messagePermission, setMessagePermission] = useState('all');
-    const [signatures, setSignatures] = useState(true);
-    const [autoSave, setAutoSave] = useState(true);
+    const [fontSize, setFontSize] = useState(() => {
+        // 从本地存储中获取保存的字体大小，如果没有则默认为'medium'
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem('fontSize') || 'medium';
+        }
+        return 'medium';
+    });
     const { t } = useTranslation();
+
+    // 监听字体大小变化并应用样式
+    useEffect(() => {
+        const root = document.documentElement;
+        switch (fontSize) {
+            case 'small':
+                root.style.setProperty('--font-size-base', '14px');
+                break;
+            case 'medium':
+                root.style.setProperty('--font-size-base', '16px');
+                break;
+            case 'large':
+                root.style.setProperty('--font-size-base', '18px');
+                break;
+        }
+        // 将字体大小保存到本地存储
+        localStorage.setItem('fontSize', fontSize);
+    }, [fontSize]);
 
     return (
         <div className="flex min-h-screen">
@@ -23,37 +40,6 @@ export default function Settings() {
             <main className="flex-1 h-screen flex flex-col opacity-90 dark:opacity-80">
                 <div className="p-8 flex-1 overflow-y-auto">
                     <div className="max-w-3xl mx-auto space-y-6">
-                        {/* 通知设置 */}
-                        <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow transition-colors">
-                            <h2 className="text-xl font-semibold mb-4 dark:text-white">{t('notificationSettings')}</h2>
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-gray-700 dark:text-gray-300">{t('forumNotifications')}</span>
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input 
-                                            type="checkbox" 
-                                            checked={notifications}
-                                            onChange={() => setNotifications(!notifications)}
-                                            className="sr-only peer"
-                                        />
-                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                                    </label>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-gray-700 dark:text-gray-300">{t('emailNotifications')}</span>
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input 
-                                            type="checkbox" 
-                                            checked={emailNotifications}
-                                            onChange={() => setEmailNotifications(!emailNotifications)}
-                                            className="sr-only peer"
-                                        />
-                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                                    </label>
-                                </div>
-                            </div>
-                        </section>
-
                         {/* 语言设置 */}
                         <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow transition-colors">
                             <h2 className="text-xl font-semibold mb-4 dark:text-white">{t('languageSettings')}</h2>
@@ -87,94 +73,38 @@ export default function Settings() {
                                 
                                 <div className="flex flex-col space-y-2">
                                     <label className="text-gray-700 dark:text-gray-300">{t('fontSize')}</label>
-                                    <select 
-                                        value={fontSize}
-                                        onChange={(e) => setFontSize(e.target.value)}
-                                        className="w-full p-2 border rounded-lg bg-blue-100 dark:bg-gray-600 dark:border-gray-600 dark:text-white"
-                                    >
-                                        <option value="small">{t('small')}</option>
-                                        <option value="medium">{t('medium')}</option>
-                                        <option value="large">{t('large')}</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </section>
-
-                        {/* 隐私设置 */}
-                        <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow transition-colors">
-                            <h2 className="text-xl font-semibold mb-4 dark:text-white">{t('privacySettings')}</h2>
-                            <div className="space-y-4">
-                                <div className="flex flex-col space-y-2">
-                                    <label className="text-gray-700 dark:text-gray-300">{t('profileVisibility')}</label>
-                                    <select 
-                                        value={profileVisibility}
-                                        onChange={(e) => setProfileVisibility(e.target.value)}
-                                        className="w-full p-2 border rounded-lg bg-blue-100 dark:bg-gray-600 dark:border-gray-600 dark:text-white"
-                                    >
-                                        <option value="public">{t('public')}</option>
-                                        <option value="friends">{t('friends')}</option>
-                                        <option value="private">{t('private')}</option>
-                                    </select>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-gray-700 dark:text-gray-300">{t('onlineStatus')}</span>
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input 
-                                            type="checkbox" 
-                                            checked={onlineStatus}
-                                            onChange={() => setOnlineStatus(!onlineStatus)}
-                                            className="sr-only peer"
-                                        />
-                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                                    </label>
-                                </div>
-                            </div>
-                        </section>
-
-                        {/* 消息设置 */}
-                        <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow transition-colors">
-                            <h2 className="text-xl font-semibold mb-4 dark:text-white">{t('messageSettings')}</h2>
-                            <div className="flex flex-col space-y-2">
-                                <label className="text-gray-700 dark:text-gray-300">{t('messagePermission')}</label>
-                                <select 
-                                    value={messagePermission}
-                                    onChange={(e) => setMessagePermission(e.target.value)}
-                                    className="w-full p-2 border rounded-lg bg-blue-100 dark:bg-gray-600 dark:border-gray-600 dark:text-white"
-                                >
-                                    <option value="all">{t('all')}</option>
-                                    <option value="friends">{t('friendsOnly')}</option>
-                                    <option value="none">{t('none')}</option>
-                                </select>
-                            </div>
-                        </section>
-
-                        {/* 发帖设置 */}
-                        <section className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow transition-colors">
-                            <h2 className="text-xl font-semibold mb-4 dark:text-white">{t('postSettings')}</h2>
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-gray-700 dark:text-gray-300">{t('showSignature')}</span>
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input 
-                                            type="checkbox" 
-                                            checked={signatures}
-                                            onChange={() => setSignatures(!signatures)}
-                                            className="sr-only peer"
-                                        />
-                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                                    </label>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-gray-700 dark:text-gray-300">{t('autosaveDraft')}</span>
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input 
-                                            type="checkbox" 
-                                            checked={autoSave}
-                                            onChange={() => setAutoSave(!autoSave)}
-                                            className="sr-only peer"
-                                        />
-                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                                    </label>
+                                    <div className="flex items-center space-x-4">
+                                        <button
+                                            onClick={() => setFontSize('small')}
+                                            className={`px-4 py-2 rounded-lg transition-colors ${
+                                                fontSize === 'small'
+                                                    ? 'bg-blue-500 text-white'
+                                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                                            }`}
+                                        >
+                                            {t('small')}
+                                        </button>
+                                        <button
+                                            onClick={() => setFontSize('medium')}
+                                            className={`px-4 py-2 rounded-lg transition-colors ${
+                                                fontSize === 'medium'
+                                                    ? 'bg-blue-500 text-white'
+                                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                                            }`}
+                                        >
+                                            {t('medium')}
+                                        </button>
+                                        <button
+                                            onClick={() => setFontSize('large')}
+                                            className={`px-4 py-2 rounded-lg transition-colors ${
+                                                fontSize === 'large'
+                                                    ? 'bg-blue-500 text-white'
+                                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                                            }`}
+                                        >
+                                            {t('large')}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </section>

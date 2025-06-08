@@ -9,9 +9,10 @@ interface TagSelectorProps {
   selectedTags: string[]
   onTagsChange: (tags: string[]) => void
   topic?: string | null
+  onTopicChange?: (topic: string) => void
 }
 
-export default function TagSelector({ selectedTags, onTagsChange, topic }: TagSelectorProps) {
+export default function TagSelector({ selectedTags, onTagsChange, topic, onTopicChange }: TagSelectorProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [availableTags, setAvailableTags] = useState<string[]>([])
 
@@ -78,12 +79,13 @@ export default function TagSelector({ selectedTags, onTagsChange, topic }: TagSe
   const handleTopicChange = (value: string) => {
     // 当选择主题时，更新可用标签
     setAvailableTags(getTopicTags(value));
+    if (onTopicChange) onTopicChange(value);
   };
 
   return (
     <div className="flex flex-col space-y-2">
       <div className="flex items-center space-x-2">
-        <Select onValueChange={handleTopicChange}>
+        <Select value={topic || ''} onValueChange={handleTopicChange}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="选择主题分类" />
           </SelectTrigger>

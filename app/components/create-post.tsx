@@ -15,7 +15,8 @@ export default function CreatePost() {
   const [media, setMedia] = useState<File[]>([])
   const [tags, setTags] = useState<string[]>([])
   const [category, setCategory] = useState<string>('')
-  const searchParams = useSearchParams()
+  const [error, setError] = useState<string>('')
+  const searchParams = useSearchParams() || { get: () => null }
   
   // 从URL获取主题参数
   useEffect(() => {
@@ -42,7 +43,15 @@ export default function CreatePost() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+    setError('')
+    if (!category) {
+      setError('请选择主题分类')
+      return
+    }
+    if (!tags || tags.length === 0) {
+      setError('请至少选择一个标签')
+      return
+    }
     try {
       // 处理图片上传
       let mediaBase64 = null
@@ -91,17 +100,17 @@ export default function CreatePost() {
             onChange={setContent}
             onEmojiSelect={(emoji) => setContent(prev => prev + emoji)}
           />
-          
+          {error && <div className="text-red-500 text-sm font-medium">{error}</div>}
           <TagSelector 
             selectedTags={tags} 
             onTagsChange={setTags} 
             topic={category} 
+            onTopicChange={setCategory}
           />
-          
           <MediaUpload onFileSelect={setMedia} />
         </CardContent>
         <CardFooter>
-          <Button type="submit" className="w-full">发布帖子</Button>
+          <Button type="submit" className="w-full" disabled={!category || !tags || tags.length === 0}>发布帖子</Button>
         </CardFooter>
       </form>
     </Card>

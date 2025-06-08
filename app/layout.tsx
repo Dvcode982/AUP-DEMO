@@ -6,6 +6,7 @@ import { BackgroundProvider } from './contexts/BackgroundContext'
 import { AuthProvider } from './contexts/AuthContext'
 import { LanguageProvider } from './contexts/LanguageContext'
 import AIAssistant from './components/AIAssistant'
+import FontSizeProvider from './components/FontSizeProvider'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -24,12 +25,14 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <LanguageProvider>
-          <BackgroundProvider>
-            <AuthProvider>
-              {children}
-              <AIAssistant />
-            </AuthProvider>
-          </BackgroundProvider>
+            <BackgroundProvider>
+              <AuthProvider>
+                <FontSizeProvider>
+                  {children}
+                  <AIAssistant />
+                </FontSizeProvider>
+              </AuthProvider>
+            </BackgroundProvider>
           </LanguageProvider>
         </ThemeProvider>
       </body>

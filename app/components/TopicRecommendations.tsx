@@ -51,7 +51,7 @@ export default function TopicRecommendations() {
 
   if (!isAuthenticated) {
     return (
-      <div className="bg-white/80 dark:bg-gray-800/80 rounded-lg p-3 shadow-sm border border-gray-100 dark:border-gray-700">
+      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-3 shadow-sm border border-gray-100 dark:border-gray-700">
         <h3 className="text-sm font-semibold mb-2 flex items-center gap-1.5">
           <Sparkles className="w-4 h-4 text-blue-500" />
           {t('recommendedForYou')}
@@ -65,7 +65,7 @@ export default function TopicRecommendations() {
 
   if (loading) {
     return (
-      <div className="bg-white/80 dark:bg-gray-800/80 rounded-lg p-3 shadow-sm border border-gray-100 dark:border-gray-700">
+      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-3 shadow-sm border border-gray-100 dark:border-gray-700">
         <div className="animate-pulse">
           <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24 mb-3"></div>
           <div className="space-y-2">
@@ -79,14 +79,8 @@ export default function TopicRecommendations() {
 
   if (error) {
     return (
-      <div className="bg-white/80 dark:bg-gray-800/80 rounded-lg p-3 shadow-sm border border-gray-100 dark:border-gray-700">
+      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-3 shadow-sm border border-gray-100 dark:border-gray-700">
         <p className="text-red-500 text-xs">{error}</p>
-        <button 
-          onClick={fetchRecommendations}
-          className="mt-2 px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 transition-colors"
-        >
-          重试
-        </button>
       </div>
     )
   }
@@ -107,7 +101,7 @@ export default function TopicRecommendations() {
   }
 
   return (
-    <div className="bg-white/80 dark:bg-gray-800/80 rounded-lg p-3 shadow-sm border border-gray-100 dark:border-gray-700">
+    <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-3 shadow-sm border border-gray-100 dark:border-gray-700">
       <h3 className="text-sm font-semibold mb-3 flex items-center gap-1.5">
         <Sparkles className="w-4 h-4 text-blue-500" />
         {t('recommendedForYou')}
@@ -173,16 +167,10 @@ export default function TopicRecommendations() {
         </div>
       )}
 
-      {/* 暂无推荐内容 */}
       {recommendations.length === 0 && topTags.length === 0 && (
-        <div className="text-center py-4">
-          <p className="text-gray-500 dark:text-gray-400 text-xs mb-2">
-            暂无推荐内容
-          </p>
-          <p className="text-gray-400 dark:text-gray-500 text-xs">
-            多浏览一些帖子来获取个性化推荐
-          </p>
-        </div>
+        <p className="text-gray-500 dark:text-gray-400 text-xs">
+          {t('continueBrowsingForRecommendations')}
+        </p>
       )}
     </div>
   )

@@ -10,11 +10,9 @@ interface SearchBarProps {
   onSearch?: (query: string, filters?: any) => void;
   placeholder?: string;
   resultCount?: number;
-  filters?: any;
-  onFilterChange?: (filters: any) => void;
 }
 
-const SearchBar = ({ onSearch, placeholder, resultCount, filters, onFilterChange }: SearchBarProps = {}) => {
+const SearchBar = ({ onSearch, placeholder, resultCount }: SearchBarProps = {}) => {
   const [mounted, setMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
@@ -204,86 +202,16 @@ const SearchBar = ({ onSearch, placeholder, resultCount, filters, onFilterChange
       {/* 快速操作栏 */}
       {isLostAndFound && (
         <div className="flex items-center justify-between mt-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">快速筛选:</span>
-            
-            {/* 物品类型筛选 */}
-            {[
-              { key: 'all', label: '全部' },
-              { key: 'lost', label: '寻物' },
-              { key: 'found', label: '招领' }
-            ].map((type) => (
+          <div className="flex items-center space-x-3">
+            <span className="text-sm text-gray-600 dark:text-gray-400">快速筛选:</span>
+            {['今日新增', '附近地点', '已解决'].map((filter, index) => (
               <button
-                key={type.key}
-                onClick={() => onFilterChange?.({ ...filters, itemType: type.key })}
-                className={`px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 ${
-                  filters?.itemType === type.key
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-white/60 dark:bg-gray-700/60 text-gray-600 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-gray-700/80 border border-gray-200/50 dark:border-gray-600/50'
-                }`}
+                key={index}
+                className="px-3 py-1.5 text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-200"
               >
-                {type.label}
+                {filter}
               </button>
             ))}
-            
-            {/* 时间筛选 */}
-            <button
-              onClick={() => onFilterChange?.({ 
-                ...filters, 
-                timeRange: filters?.timeRange === 'today' ? 'all' : 'today' 
-              })}
-              className={`px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 ${
-                filters?.timeRange === 'today'
-                  ? 'bg-green-500 text-white'
-                  : 'bg-white/60 dark:bg-gray-700/60 text-gray-600 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-gray-700/80 border border-gray-200/50 dark:border-gray-600/50'
-              }`}
-            >
-              今日新增
-            </button>
-            
-            {/* 地点筛选 */}
-            <button
-              onClick={() => onFilterChange?.({ 
-                ...filters, 
-                location: filters?.location === 'nearby' ? 'all' : 'nearby' 
-              })}
-              className={`px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 ${
-                filters?.location === 'nearby'
-                  ? 'bg-purple-500 text-white'
-                  : 'bg-white/60 dark:bg-gray-700/60 text-gray-600 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-gray-700/80 border border-gray-200/50 dark:border-gray-600/50'
-              }`}
-            >
-              附近地点
-            </button>
-            
-            {/* 状态筛选 */}
-            <button
-              onClick={() => onFilterChange?.({ 
-                ...filters, 
-                status: filters?.status === 'resolved' ? 'all' : 'resolved' 
-              })}
-              className={`px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 ${
-                filters?.status === 'resolved'
-                  ? 'bg-emerald-500 text-white'
-                  : 'bg-white/60 dark:bg-gray-700/60 text-gray-600 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-gray-700/80 border border-gray-200/50 dark:border-gray-600/50'
-              }`}
-            >
-              已解决
-            </button>
-            
-            <button
-              onClick={() => onFilterChange?.({ 
-                ...filters, 
-                status: filters?.status === 'active' ? 'all' : 'active' 
-              })}
-              className={`px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 ${
-                filters?.status === 'active'
-                  ? 'bg-orange-500 text-white'
-                  : 'bg-white/60 dark:bg-gray-700/60 text-gray-600 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-gray-700/80 border border-gray-200/50 dark:border-gray-600/50'
-              }`}
-            >
-              未解决
-            </button>
           </div>
           
           <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
