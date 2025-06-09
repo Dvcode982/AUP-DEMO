@@ -2,95 +2,125 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 
 let sessionHistory: { role: string, content: string }[] = []
 
-// 提取搜索关键词
+// 结构化关键词分类
+const keywordCategories: Array<{ name: string; keywords: string[]; weight: number }> = [
+  {
+    name: "items",
+    keywords: [
+      '校园卡', '钥匙', '钱包', '手机', '充电器', '耳机', '书包', '雨伞', '水杯',
+      '笔记本', '眼镜', '手表', '身份证', '银行卡', '公交卡', 'u盘', '移动硬盘',
+      '电脑', '平板', '相机', '项链', '戒指', '手镯', '耳环', '手链', '包',
+      '背包', '双肩包', '单肩包', '化妆包', '文具', '笔', '书', '课本', '作业本',
+      '保温杯', '饭盒', '餐具', '衣服', '外套', '帽子', '围巾', '手套', '鞋',
+      '袜子', '裤子', 't恤', '毛衣', '运动鞋', '凉鞋', '拖鞋'
+    ],
+    weight: 1.5
+  },
+  {
+    name: "locations",
+    keywords: [
+      '宿舍', '食堂', '图书馆', '教学楼', '操场', '实验室', '停车场', '校门',
+      '咖啡厅', '便利店', '超市', '洗衣房', '浴室', '厕所', '楼梯', '电梯',
+      '走廊', '教室', '办公室', '医务室', '体育馆', '游泳池', '网球场',
+      '篮球场', '足球场', '跑道', '健身房', '自习室', '机房', '实训室'
+    ],
+    weight: 1.2
+  },
+  {
+    name: "activities",
+    keywords: ['羽毛球', '篮球', '足球', '乒乓球', '跑步', '健身', '学习', '约', '一起'],
+    weight: 1.3
+  },
+  {
+    name: "actions",
+    keywords: ['丢', '找', '寻找', '捡到', '遗失'],
+    weight: 1.0
+  }
+]
+
+// 主题无效词（用于过滤）
+const meaninglessWords = ['相关', '帖子', '内容', '信息', '资料', '东西', '事情', '问题']
+
+// 1. 意图识别
+function shouldTriggerSearch(question: string): boolean {
+  const lowerQuestion = question.toLowerCase()
+  if (/(没|无|不|未).*(丢|丢过|寻找|找|遗失)/.test(lowerQuestion)) return false
+  const searchPatterns = [
+    /哪里.*(找|看到|捡到)/,
+    /(帮我|请).*找/,
+    /(丢|遗失).*(东西|物品)/,
+    /(捡到|拾到).*(东西|物品)/,
+    /想找/,
+    /相关.*帖子/,
+    /有没有.*(关于|相关)/
+  ]
+  return searchPatterns.some(pattern => pattern.test(lowerQuestion))
+}
+
+// 2. 上下文感知关键词提取
+function getContextAwareKeywords(question: string, sessionHistory: { role: string, content: string }[]): string | null {
+  const lastTwoMessages = sessionHistory.slice(-2)
+  const isLostContext = lastTwoMessages.some(msg =>
+    msg.role === 'user' && /(丢|找|失物)/.test(msg.content.toLowerCase())
+  )
+  const continuationPattern = /(它|这个|那|那里|上面)/
+  if (isLostContext && continuationPattern.test(question)) {
+    const contextItems = keywordCategories.find(c => c.name === 'items')?.keywords.filter(item =>
+      lastTwoMessages.some(msg => msg.content.includes(item))
+    ) || []
+    if (contextItems.length > 0) return contextItems[0]
+  }
+  return extractSearchKeywords(question)
+}
+
+// 3. 加权关键词提取
+function findWeightedKeywords(question: string): string | null {
+  const lowerQuestion = question.toLowerCase()
+  let bestKeyword = ''
+  let bestScore = 0
+  keywordCategories.forEach(category => {
+    category.keywords.forEach(keyword => {
+      if (lowerQuestion.includes(keyword)) {
+        const positionScore = 1 - (lowerQuestion.indexOf(keyword) / lowerQuestion.length)
+        const score = category.weight * positionScore
+        if (score > bestScore) {
+          bestKeyword = keyword
+          bestScore = score
+        }
+      }
+    })
+  })
+  return bestKeyword || null
+}
+
+// 4. 正则与组合关键词提取
 function extractSearchKeywords(question: string): string | null {
   const lowerQuestion = question.toLowerCase()
-  
-  // 失物招领相关关键词（扩展）
-  const lostAndFoundKeywords = [
-    '失物', '招领', '丢', '找', '寻', '捡', '遗失', '拾到', '归还', 
-    '丢失', '遗忘', '不见了', '找不到', '掉了', '落在', '忘记', 
-    '寻找', '寻物', '失而复得', '拾金不昧', '物归原主', '认领', 
-    '失主', '领取', '捡到'
-  ]
-  
-  // 物品关键词（大幅扩展）
-  const itemKeywords = [
-    '校园卡', '钥匙', '钱包', '手机', '充电器', '耳机', '书包', '雨伞', 
-    '水杯', '笔记本', '眼镜', '手表', '身份证', '银行卡', '公交卡', 
-    'u盘', '移动硬盘', '电脑', '平板', '相机', '项链', '戒指', 
-    '手镯', '耳环', '手链', '包', '背包', '双肩包', '单肩包', 
-    '化妆包', '文具', '笔', '书', '课本', '作业本', '保温杯', 
-    '饭盒', '餐具', '衣服', '外套', '帽子', '围巾', '手套', 
-    '鞋', '袜子', '裤子', 't恤', '毛衣', '运动鞋', '凉鞋', '拖鞋'
-  ]
-  
-  // 地点关键词
-  const locationKeywords = [
-    '宿舍', '食堂', '图书馆', '教学楼', '操场', '实验室', '停车场', 
-    '校门', '咖啡厅', '便利店', '超市', '洗衣房', '浴室', '厕所', 
-    '楼梯', '电梯', '走廊', '教室', '办公室', '医务室', '体育馆', 
-    '游泳池', '网球场', '篮球场', '足球场', '跑道', '健身房', 
-    '自习室', '机房', '实训室'
-  ]
-  
-  // 检查是否包含失物招领相关词汇
-  const hasLostFoundKeywords = lostAndFoundKeywords.some(keyword => lowerQuestion.includes(keyword))
-  const hasItemKeywords = itemKeywords.some(keyword => lowerQuestion.includes(keyword))
-  const hasLocationKeywords = locationKeywords.some(keyword => lowerQuestion.includes(keyword))
-  
-  // 如果是失物招领相关查询
-  if (hasLostFoundKeywords || hasItemKeywords) {
-    // 提取最相关的关键词
-    let extractedKeyword = ''
-    
-    // 优先提取物品名称
-    for (const item of itemKeywords) {
-      if (lowerQuestion.includes(item)) {
-        extractedKeyword = item
-        break
-      }
-    }
-    
-    // 如果没有具体物品，提取失物招领关键词
-    if (!extractedKeyword) {
-      for (const keyword of lostAndFoundKeywords) {
-        if (lowerQuestion.includes(keyword)) {
-          extractedKeyword = keyword
-          break
-        }
-      }
-    }
-    
-    // 如果有地点信息，组合关键词
-    if (hasLocationKeywords) {
-      for (const location of locationKeywords) {
-        if (lowerQuestion.includes(location)) {
-          extractedKeyword = extractedKeyword ? `${location} ${extractedKeyword}` : location
-          break
-        }
-      }
-    }
-    
-    return extractedKeyword || '失物招领'
-  }
-  
-  // 通用搜索关键词
+  const itemPattern = new RegExp(
+    `(${keywordCategories.find(c => c.name === 'items')?.keywords.join('|')})[的]*(丢失|遗失|丢|寻找|找|捡到|拾到|落在)?`,
+    'g'
+  )
+  const locationPattern = new RegExp(
+    `(在|从|到)(${keywordCategories.find(c => c.name === 'locations')?.keywords.join('|')})`,
+    'g'
+  )
+  const itemMatches = [...lowerQuestion.matchAll(itemPattern)]
+  const locationMatches = [...lowerQuestion.matchAll(locationPattern)]
+  let keywords = []
+  if (itemMatches.length > 0) keywords.push(itemMatches[0][1])
+  if (locationMatches.length > 0) keywords.push(locationMatches[0][2])
+  if (keywords.length > 0) return keywords.join(' ')
+  if (/(丢东西|丢物品|找东西|失物|招领)/.test(lowerQuestion)) return '失物招领'
+  // 活动类关键词兜底
+  const activity = keywordCategories.find(c => c.name === 'activities')?.keywords.find(act => lowerQuestion.includes(act))
+  if (activity) return activity
+  // 通用分词兜底
+  const stopWords = ['的', '了', '在', '是', '我', '你', '他', '她', '它', '们', '这', '那', '一个', '有', '没', '吗', '呢', '啊', '吧']
   const searchIndicators = ['找', '搜', '查', '看', '有没有', '哪里', '怎么', '什么']
-  const hasSearchIntent = searchIndicators.some(indicator => lowerQuestion.includes(indicator))
-  
-  if (hasSearchIntent) {
-    // 提取可能的搜索关键词（去除常见停用词）
-    const stopWords = ['的', '了', '在', '是', '我', '你', '他', '她', '它', '们', '这', '那', '一个', '有', '没', '吗', '呢', '啊', '吧']
-    const words = lowerQuestion.split(/[，。！？\s]+/).filter(word => 
-      word.length > 1 && !stopWords.includes(word) && !searchIndicators.includes(word)
-    )
-    
-    if (words.length > 0) {
-      return words[0] // 返回第一个有意义的词
-    }
-  }
-  
+  const words = lowerQuestion.split(/[，。！？、,.!?\s]+/).filter(word =>
+    word.length > 1 && !stopWords.includes(word) && !searchIndicators.includes(word) && !meaninglessWords.includes(word)
+  )
+  if (words.length > 0) return words[0]
   return null
 }
 
@@ -141,9 +171,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log('收到问题:', question)
     sessionHistory.push({ role: 'user', content: question })
 
-    // 检查是否是搜索相关问题，并提取关键词
-    const searchKeyword = extractSearchKeywords(question)
-    const isSearchRelated = searchKeyword !== null
+    // 优化后的关键词提取流程
+    let searchKeyword: string | null = null
+    let isSearchRelated = false
+    if (shouldTriggerSearch(question)) {
+      searchKeyword = getContextAwareKeywords(question, sessionHistory)
+      if (!searchKeyword) searchKeyword = findWeightedKeywords(question)
+      isSearchRelated = !!searchKeyword
+    }
     
     console.log('搜索关键词提取:', { isSearchRelated, searchKeyword })
     
