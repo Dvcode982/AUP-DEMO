@@ -189,7 +189,7 @@ app.get('/', (req, res) => {
 });
 
 // 导入路由
-require('./routes/auth')(app, db, bcrypt, jwt);
+require('./routes/auth')(app, db, bcrypt, jwt, dbLostFound);
 require('./routes/posts')(app, db, authenticateToken);
 require('./routes/comments')(app, db, authenticateToken);
 require('./routes/users')(app, db, authenticateToken);

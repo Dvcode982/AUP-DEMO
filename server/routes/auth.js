@@ -1,4 +1,4 @@
-module.exports = (app, db, bcrypt, jwt) => {
+module.exports = (app, db, bcrypt, jwt, dbLostFound) => {
   // 用户注册
   app.post('/register', async (req, res) => {
     const { email, password, confirmPassword } = req.body;
@@ -33,9 +33,24 @@ module.exports = (app, db, bcrypt, jwt) => {
             if (err) {
               return res.status(500).json({ error: 'Failed to create user' });
             }
+            const userId = this.lastID;
+
+            // 同步用户到失物招领独立数据库，避免失物招领帖子因 JOIN 不到用户而不可见
+            if (dbLostFound) {
+              dbLostFound.run(
+                'INSERT OR IGNORE INTO users (id, email, password, created_at) VALUES (?, ?, ?, ?)',
+                [userId, email, hashedPassword, new Date().toISOString()],
+                (syncErr) => {
+                  if (syncErr) {
+                    console.error('Error syncing user to lost & found database:', syncErr.message);
+                  }
+                }
+              );
+            }
+
             res.status(201).json({
               message: 'User registered successfully',
-              userId: this.lastID
+              userId
             });
           }
         );

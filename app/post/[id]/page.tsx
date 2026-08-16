@@ -41,7 +41,8 @@ interface CommentData {
 }
 
 export default function PostPage() {
-  const { id } = useParams()
+  const params = useParams()
+  const id = params?.id as string | string[] | undefined
   const [post, setPost] = useState<PostData | null>(null)
   const [comments, setComments] = useState<CommentData[]>([])
   const [newComment, setNewComment] = useState('')

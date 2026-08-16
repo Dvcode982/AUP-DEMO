@@ -29,6 +29,7 @@ import { useTheme } from 'next-themes'
 import { messagesAPI  } from '@/lib/api'
 import toast from 'react-hot-toast'
 import { EmojiButton } from './EmojiButton'
+import UserSearchModal from './UserSearchModal'
 import Image from 'next/image'
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import {
@@ -91,6 +92,8 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
     messageContent: string;
     messageType: string;
   } | null>(null);
+  const [isForwardModalOpen, setIsForwardModalOpen] = useState(false);
+  const [forwardTarget, setForwardTarget] = useState<{ content: string; type: string } | null>(null);
 
   useEffect(() => {
     setMounted(true)
@@ -498,9 +501,24 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
 
   // 转发消息
   const forwardMessage = (content: string, type: string) => {
-    // 这里可以实现转发逻辑，比如打开选择联系人的模态框
-    toast('转发功能待实现');
+    // 打开用户搜索模态框，选择转发目标后发送
+    setForwardTarget({ content, type: type || 'text' });
+    setIsForwardModalOpen(true);
     closeContextMenu();
+  };
+
+  // 确认转发给目标用户
+  const handleForwardToUser = async (userId: string) => {
+    if (!forwardTarget) return;
+    try {
+      await messagesAPI.sendMessage(userId, forwardTarget.content, forwardTarget.type as 'text' | 'image');
+      toast.success('消息已转发');
+    } catch (error) {
+      console.error('Failed to forward message:', error);
+      toast.error('转发失败');
+    } finally {
+      setForwardTarget(null);
+    }
   };
 
   // 全局点击关闭菜单
@@ -842,6 +860,16 @@ export default function ChatWindow({ chatId }: ChatWindowProps) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* 转发用户搜索模态框 */}
+      <UserSearchModal
+        isOpen={isForwardModalOpen}
+        onClose={() => {
+          setIsForwardModalOpen(false);
+          setForwardTarget(null);
+        }}
+        onSelectUser={handleForwardToUser}
+      />
     </>
   );
 }

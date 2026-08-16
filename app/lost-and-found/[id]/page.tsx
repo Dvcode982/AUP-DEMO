@@ -61,7 +61,8 @@ interface Comment {
 }
 
 export default function LostAndFoundItemPage() {
-  const { id } = useParams()
+  const params = useParams()
+  const id = params?.id as string | string[] | undefined
   const router = useRouter()
   const { t } = useTranslation()
   

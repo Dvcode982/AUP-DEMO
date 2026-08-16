@@ -9,7 +9,7 @@ import Link from 'next/link'
 
 export default function CreateLostFoundPage() {
   const searchParams = useSearchParams()
-  const type = searchParams.get('type') as 'lost' | 'found' || 'lost'
+  const type = (searchParams?.get('type') as 'lost' | 'found') || 'lost'
   const { t } = useTranslation()
 
   return (

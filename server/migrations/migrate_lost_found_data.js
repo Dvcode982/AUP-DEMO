@@ -175,9 +175,9 @@ async function migrateLostAndFoundComments() {
       // 为每条评论创建一个插入Promise
       const insertPromises = comments.map(comment => {
         return new Promise((resolveInsert, rejectInsert) => {
-          // 插入失物招领评论
+          // 插入失物招领评论（已存在的评论自动跳过）
           dbLostFound.run(
-            'INSERT INTO lost_found_comments (id, item_id, author_id, content, created_at) VALUES (?, ?, ?, ?, ?)',
+            'INSERT OR IGNORE INTO lost_found_comments (id, item_id, author_id, content, created_at) VALUES (?, ?, ?, ?, ?)',
             [comment.id, comment.post_id, comment.author_id, comment.content, comment.created_at],
             function(insertErr) {
               if (insertErr) {

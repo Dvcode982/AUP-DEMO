@@ -65,7 +65,7 @@ const TOPIC_COLORS: Record<string, { border: string; glow: string; bg: string; t
 export default function TopicDetail() {
   const params = useParams();
   const searchParams = useSearchParams();
-  const topic = decodeURIComponent(params.topic as string);
+  const topic = decodeURIComponent((params?.topic as string) || '');
   const [posts, setPosts] = useState<PostProps[]>([]);
   const [filteredPosts, setFilteredPosts] = useState<PostProps[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,7 +76,7 @@ export default function TopicDetail() {
   
   // 从URL查询参数中获取标签
   useEffect(() => {
-    const tagParam = searchParams.get('tag');
+    const tagParam = searchParams?.get('tag');
     if (tagParam) {
       setSelectedTag(`#${tagParam}`);
       setShowTagFilter(true);

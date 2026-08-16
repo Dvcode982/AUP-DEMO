@@ -1,10 +1,5 @@
 module.exports = (app, db, authenticateToken) => {
-  // 修改消息表，添加 type 字段
-  db.run(`ALTER TABLE messages ADD COLUMN type TEXT DEFAULT 'text'`, (err) => {
-    console.log('Added type column to messages table');
-  });
-
-  // 创建消息表
+  // 创建消息表（含 type 字段）
   db.run(`CREATE TABLE IF NOT EXISTS messages (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     sender_id INTEGER NOT NULL,
@@ -20,6 +15,12 @@ module.exports = (app, db, authenticateToken) => {
       console.error('Error creating messages table:', err.message);
     } else {
       console.log('Messages table initialized successfully');
+      // 兼容旧表：确保 type 字段存在
+      db.run(`ALTER TABLE messages ADD COLUMN type TEXT DEFAULT 'text'`, (alterErr) => {
+        if (alterErr && !alterErr.message.includes('duplicate column')) {
+          console.error('Error adding type column to messages table:', alterErr.message);
+        }
+      });
     }
   });
 

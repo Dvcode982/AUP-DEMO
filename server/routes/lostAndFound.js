@@ -8,6 +8,15 @@ module.exports = (app, db, authenticateToken) => {
     }
   });
 
+  // 为lost_and_found表添加shares字段（分享计数）
+  db.run(`ALTER TABLE lost_and_found ADD COLUMN shares INTEGER DEFAULT 0`, (err) => {
+    if (err && !err.message.includes('duplicate column')) {
+      console.error('Error adding shares column:', err.message);
+    } else {
+      console.log('Added shares column to lost_and_found table');
+    }
+  });
+
   // 获取失物招领列表
   app.get('/api/lost-and-found', async (req, res) => {
     const { search, type } = req.query;
@@ -20,7 +29,8 @@ module.exports = (app, db, authenticateToken) => {
         l.item_type as itemType,
         l.is_returned as isReturned,
         l.returned_time as returnedTime,
-        l.created_at as time
+        l.created_at as time,
+        l.shares as shares
       FROM lost_and_found l
       JOIN users u ON l.author_id = u.id
     `;
@@ -206,6 +216,79 @@ module.exports = (app, db, authenticateToken) => {
     );
   });
 
+  // 取消已找到/已归还状态
+  app.put('/api/lost-and-found/:id/cancel-return', authenticateToken, async (req, res) => {
+    const { id } = req.params;
+
+    // 检查物品是否存在并属于当前用户
+    db.get(
+      'SELECT * FROM lost_and_found WHERE id = ? AND author_id = ?',
+      [id, req.user.userId],
+      (err, item) => {
+        if (err) {
+          return res.status(500).json({ error: 'Database error' });
+        }
+        if (!item) {
+          return res.status(404).json({ error: 'Item not found or unauthorized' });
+        }
+
+        // 更新物品状态为未解决
+        db.run(
+          'UPDATE lost_and_found SET is_returned = 0, returned_time = NULL WHERE id = ?',
+          [id],
+          (err) => {
+            if (err) {
+              return res.status(500).json({ error: 'Failed to cancel returned status' });
+            }
+
+            res.json({
+              message: 'Returned status cancelled',
+              isReturned: false
+            });
+          }
+        );
+      }
+    );
+  });
+
+  // 分享失物招领帖子
+  app.post('/api/lost-and-found/:id/share', authenticateToken, async (req, res) => {
+    const { id } = req.params;
+
+    // 检查物品是否存在
+    db.get('SELECT id FROM lost_and_found WHERE id = ?', [id], (err, item) => {
+      if (err) {
+        return res.status(500).json({ error: 'Database error' });
+      }
+      if (!item) {
+        return res.status(404).json({ error: 'Item not found' });
+      }
+
+      // 分享计数 +1
+      db.run(
+        'UPDATE lost_and_found SET shares = COALESCE(shares, 0) + 1 WHERE id = ?',
+        [id],
+        (err) => {
+          if (err) {
+            return res.status(500).json({ error: 'Failed to share item' });
+          }
+
+          // 返回最新分享数
+          db.get('SELECT COALESCE(shares, 0) as shares FROM lost_and_found WHERE id = ?', [id], (err, result) => {
+            if (err) {
+              return res.status(500).json({ error: 'Failed to get share count' });
+            }
+
+            res.json({
+              shares: result.shares,
+              message: 'Item shared successfully'
+            });
+          });
+        }
+      );
+    });
+  });
+
   // 获取单个失物招领详情
   app.get('/api/lost-and-found/:id', async (req, res) => {
     const { id } = req.params;
@@ -218,7 +301,8 @@ module.exports = (app, db, authenticateToken) => {
         l.item_type as itemType,
         l.is_returned as isReturned,
         l.returned_time as returnedTime,
-        l.created_at as time
+        l.created_at as time,
+        l.shares as shares
       FROM lost_and_found l
       JOIN users u ON l.author_id = u.id
       WHERE l.id = ?
